@@ -1,10 +1,11 @@
-import React from 'react'
-import { Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 const Excavators = ({navigation}) => {
     const goToMachineryDetails = () => {
         navigation.navigate("MachineryDetails");
     }
+
+    
     return (
         <>
             <View style={{ backgroundColor: '#47D6FF', justifyContent: 'center', alignItems: 'center', width: '100%', height: 80 }}>

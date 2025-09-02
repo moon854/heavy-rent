@@ -2,11 +2,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Register from './pages/Register';
 
-import Verfication from './pages/Verification'
-import Login from './pages/Login'
-import Home from './pages/Home'
-import Excavators from './pages/Excavators'
-import MachineryDetails from './pages/MachineryDetails'
+import Excavators from './pages/Excavators';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import MachineryDetails from './pages/MachineryDetails';
+import Verfication from './pages/Verification';
+
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
