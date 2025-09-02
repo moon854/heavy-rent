@@ -1,7 +1,7 @@
 import React from 'react'
 import { Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 
-const Excavators = (navigation) => {
+const Excavators = ({navigation}) => {
     const goToMachineryDetails = () => {
         navigation.navigate("MachineryDetails");
     }
