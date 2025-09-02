@@ -1,6 +1,6 @@
 import React from 'react'
 import Entypo from '@expo/vector-icons/Entypo';
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity,  } from 'react-native'
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 const MachineryDetails = () => {
   return (
@@ -13,11 +13,37 @@ const MachineryDetails = () => {
       <Image source={require('../../assets/images/ex2.webp')} style={{ width: 271, height: 181, marginTop: -10, marginLeft: 50 }} />
       <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
         <View> <Text style={{ fontSize: 20, marginLeft: 20 }}>Specification</Text> </View>
-      <TouchableOpacity>  <View> <Text style={{ fontSize: 15, marginLeft: 160 }}>See All </Text> </View></TouchableOpacity>
+        <TouchableOpacity>  <View> <Text style={{ fontSize: 15, marginLeft: 160 }}>See All </Text> </View></TouchableOpacity>
         <FontAwesome style={{ marginTop: 1, marginRight: 20 }} name="angle-right" size={18} color="black" />
       </View>
-      <View style={{ display: 'flex', flexDirection: 'row' }}>
-        <View> <Text style={{ fontSize: 20, marginLeft: 20 }}>Power</Text></View>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
+        <View style={{ outlineColor: 'black', outlineWidth: 1, borderRadius: 8, width: 140, height: 50 }}>
+          <View> <Text style={{ fontSize: 20, marginLeft: 10 }}>Power</Text></View>
+          <View> <Text style={{ fontSize: 10, marginLeft: 0 }}>110 ps @ 2,800 rpm</Text></View>
+
+        </View>
+        <View style={{ outlineColor: 'black', outlineWidth: 1, borderRadius: 8, width: 140, height: 50 }}>
+          <View> <Text style={{ fontSize: 20, marginLeft: 10 }}>Machine</Text></View>
+          <View> <Text style={{ fontSize: 10, marginLeft: 20 }}>4,009 cc</Text></View>
+
+        </View>
+        <View style={{ outlineColor: 'black', outlineWidth: 1, borderRadius: 8, width: 140, height: 50 }}>
+          <View> <Text style={{ fontSize: 20, marginLeft: 10 }}>Torque</Text></View>
+          <View> <Text style={{ fontSize: 10, marginLeft: 20 }}>28.0 kgm @ 1,800 rpmm</Text></View>
+        </View>
+      </View>
+      <View>
+        <Text style={{fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 20 }}> Rental Policy </Text>
+      </View>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
+        <View style={{outlineColor: 'gray', outlineWidth: 1, borderRadius: 8, width: 170, height: 50, marginTop: 20}}><Text style={{ fontSize: 15, marginLeft: 10 }}>The rental price includes PPh and VAT</Text></View>
+        <View style={{outlineColor: 'gray', outlineWidth: 1, borderRadius: 8, width: 170, height: 50, marginTop: 20}}><Text style={{ fontSize: 15, marginLeft: 10 }}>The rental price includes PPh and VAT</Text></View>
+
+      </View>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
+        <View style={{outlineColor: 'gray', outlineWidth: 1, borderRadius: 8, width: 170, height: 50, marginTop: 20}}><Text style={{ fontSize: 15, marginLeft: 10 }}>The rental price includes PPh and VAT</Text></View>
+        <View style={{outlineColor: 'gray', outlineWidth: 1, borderRadius: 8, width: 170, height: 50, marginTop: 20}}><Text style={{ fontSize: 15, marginLeft: 10 }}>The rental price includes PPh and VAT</Text></View>
+
       </View>
     </>
   )
