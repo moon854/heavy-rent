@@ -52,8 +52,9 @@ const MachineryDetails = ({ navigation }) => {
         <View>
           <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>Rp. 40,000 / 24 hours </Text> </View>
         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <View style={{ width: 150, height: 40 }}> <Text style={{ fontSize: 15, outlineColor: '#47D6FF', outlineWidth: 1, borderRadius: 8, marginTop: 'auto' }}>Chat With Admin</Text> </View>
-          <View> <Text style={{ fontSize: 15, marginRight: 20, marginTop: 30, backgroundColor: '#47D6FF', borderRadius: 8, width: 150, height: 40 }}>Request For Rent</Text> </View>
+          <TouchableOpacity>
+          <View style={{ width: 150, height: 40 }}> <Text style={{ fontSize: 15, outlineColor: '#47D6FF', outlineWidth: 1, borderRadius: 8, marginTop: 'auto' }}>Chat With Admin</Text> </View></TouchableOpacity>
+         <TouchableOpacity onPress={goToRForm}> <View> <Text style={{ fontSize: 15, marginRight: 20, marginTop: 30, backgroundColor: '#47D6FF', borderRadius: 8, width: 150, height: 40 }}>Request For Rent</Text> </View></TouchableOpacity>
         </View>
       </View>
 

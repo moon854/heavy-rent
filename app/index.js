@@ -8,7 +8,8 @@ import Login from './pages/Login';
 import MachineryDetails from './pages/MachineryDetails';
 import Verfication from './pages/Verification';
 import RenterForm from './pages/RenterForm';
-
+import RentalEstimation from './pages/RentalEstimation';
+import Payment from './pages/Payment';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
       <Stack.Screen name="Excavators" component={Excavators} />
       <Stack.Screen name="MachineryDetails" component={MachineryDetails} />
       <Stack.Screen name="RenterForm" component={RenterForm} />
+      <Stack.Screen name="RentalEstimation" component={RentalEstimation} />
+      <Stack
     </Stack.Navigator>
 
   );
