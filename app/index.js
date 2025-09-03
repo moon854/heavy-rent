@@ -7,7 +7,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import MachineryDetails from './pages/MachineryDetails';
 import Verfication from './pages/Verification';
-
+import RenterForm from './pages/RenterForm';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +21,7 @@ export default function App() {
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Excavators" component={Excavators} />
       <Stack.Screen name="MachineryDetails" component={MachineryDetails} />
+      <Stack.Screen name="RenterForm" component={RenterForm} />
     </Stack.Navigator>
 
   );
