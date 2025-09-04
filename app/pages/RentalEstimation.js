@@ -59,7 +59,7 @@ const RentalEstimation = ({ navigation }) => {
       </View>
 
       {/* Proceed to Pay Button */}
-      <TouchableOpacity onPress={goToRForm}> <View> <Text style={{ fontSize: 15, marginRight: 20, marginTop: 30, backgroundColor: '#47D6FF', borderRadius: 8, width: 150, height: 40 }}>Request For Rent</Text> </View></TouchableOpacity>
+      <TouchableOpacity onPress={goToPayment}> <View> <Text style={{ fontSize: 15, marginRight: 20, marginTop: 30, backgroundColor: '#47D6FF', borderRadius: 8, width: 150, height: 40 }}>Request For Rent</Text> </View></TouchableOpacity>
     </ScrollView>
   )
 }

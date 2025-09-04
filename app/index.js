@@ -10,6 +10,8 @@ import Verfication from './pages/Verification';
 import RenterForm from './pages/RenterForm';
 import RentalEstimation from './pages/RentalEstimation';
 import Payment from './pages/Payment';
+import Success from './pages/Success';
+import Chat from './pages/Chat';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -24,7 +26,9 @@ export default function App() {
       <Stack.Screen name="MachineryDetails" component={MachineryDetails} />
       <Stack.Screen name="RenterForm" component={RenterForm} />
       <Stack.Screen name="RentalEstimation" component={RentalEstimation} />
-      <Stack
+      <Stack.Screen name="Payment" component={Payment} />
+      <Stack.Screen name="Success" component={Success} />
+      <Stack.Screen name="Chat" component={Chat} />
     </Stack.Navigator>
 
   );
