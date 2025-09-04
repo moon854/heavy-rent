@@ -7,6 +7,10 @@ const Home = ({navigation}) => {
     navigation.navigate("Excavators");
     
 }
+ const goToAdForm = () => {
+    navigation.navigate("AdForm");
+    
+}
   return (
     <View style={{ justifyContent: 'center', alignItems: 'center' }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 30 }}>
@@ -23,9 +27,10 @@ const Home = ({navigation}) => {
         </View>
 
       </View>
+      <TouchableOpacity onPress={goToAdForm}>
       <View style={{ width: 120, height: 45, backgroundColor: '#47D6FF', borderRadius: 10, marginTop: 20, alignSelf: 'center' }} >
         <Text style={{ fontSize: 15, color: 'white', textAlign: 'center', paddingTop: 10 }}>+Place</Text>
-      </View>
+      </View></TouchableOpacity>
       <View style={{ width: '80%', height: 45, backgroundColor: '#66e0ff', borderRadius: 10, marginTop: 20, alignSelf: 'center' }} >
         <Text style={{ fontSize: 15, color: 'white', textAlign: 'center', paddingTop: 10 }}>Categories</Text>
       </View>

@@ -12,6 +12,7 @@ import RentalEstimation from './pages/RentalEstimation';
 import Payment from './pages/Payment';
 import Success from './pages/Success';
 import Chat from './pages/Chat';
+import AdForm from './pages/AdForm';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
       <Stack.Screen name="Payment" component={Payment} />
       <Stack.Screen name="Success" component={Success} />
       <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="AdForm" component={AdForm} />
     </Stack.Navigator>
 
   );
