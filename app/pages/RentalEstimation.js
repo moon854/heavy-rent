@@ -1,14 +1,13 @@
-import React from 'react'
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const RentalEstimation = ({ navigation }) => {
-    
-        const goToPayment = () => {
-        navigation.navigate("Payment");
-      }
+
+  const goToPayment = () => {
+    navigation.navigate("Payment");
+  }
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#fff", padding: 20 }}>
-      
+
       {/* Heading */}
       <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10 }}>
         Rental estimation details
@@ -59,7 +58,21 @@ const RentalEstimation = ({ navigation }) => {
       </View>
 
       {/* Proceed to Pay Button */}
-      <TouchableOpacity onPress={goToPayment}> <View> <Text style={{ fontSize: 15, marginRight: 20, marginTop: 30, backgroundColor: '#47D6FF', borderRadius: 8, width: 150, height: 40 }}>Request For Rent</Text> </View></TouchableOpacity>
+      <TouchableOpacity onPress={goToPayment}>
+        <View
+          style={{
+            backgroundColor: '#47D6FF',
+            borderRadius: 8,
+            width: 150,
+            height: 40,
+            alignSelf:'center' ,
+            justifyContent: 'center', // ✅ vertical center
+            alignItems: 'center',     // ✅ horizontal center
+          }}
+        >
+          <Text style={{ fontSize: 15, color: '#fff' }}>Request For Rent</Text>
+        </View>
+      </TouchableOpacity>
     </ScrollView>
   )
 }
