@@ -13,12 +13,14 @@ import Payment from './pages/Payment';
 import Success from './pages/Success';
 import Chat from './pages/Chat';
 import AdForm from './pages/AdForm';
+import LoginorRegister from './pages/LoginorRegister';
+import BottomTab from './Tabs/Bottomtab';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
 
-    <Stack.Navigator initialRouteName="Register">
+    <Stack.Navigator initialRouteName="LoginorRegister">
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="Verification" component={Verfication} />
       <Stack.Screen name="Login" component={Login} />
@@ -31,6 +33,8 @@ export default function App() {
       <Stack.Screen name="Success" component={Success} />
       <Stack.Screen name="Chat" component={Chat} />
       <Stack.Screen name="AdForm" component={AdForm} />
+      <Stack.Screen name="LoginorRegister" component={LoginorRegister} />
+      <Stack.Screen name='BottomTab' component={BottomTab} />
     </Stack.Navigator>
 
   );

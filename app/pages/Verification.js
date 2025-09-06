@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View, ScrollView } from 'react-native';
 import { OtpInput } from "react-native-otp-entry";
 import { Keyboard } from 'react-native';
 const Verfication = ({navigation}) => {

@@ -12,7 +12,7 @@ const MachineryDetails = ({ navigation }) => {
   };
 
   return (
-    <>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <View>
         <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20 }}>Rippa R57</Text>
       </View>
@@ -90,7 +90,6 @@ const MachineryDetails = ({ navigation }) => {
           <Text style={{ fontSize: 12 }}>28.0 kgm @ 1,800 rpm</Text>
         </View>
       </ScrollView>
-
 
       {/* Rental Policy */}
       <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 20 }}>Rental Policy</Text>
@@ -205,7 +204,7 @@ const MachineryDetails = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
-    </>
+    </ScrollView>
   );
 };
 

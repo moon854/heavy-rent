@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, View, TextInput } from 'react-native';
+import { Text, TouchableOpacity, View, TextInput, ScrollView } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 const Register = ({ navigation }) => {
@@ -13,6 +13,7 @@ const Register = ({ navigation }) => {
 
   return (
     <View>
+       
       <Text style={{ fontSize: 20, color: 'black', textAlign: 'center', paddingTop: 10 }}>
         Create Account
       </Text>
