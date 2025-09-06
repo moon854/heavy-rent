@@ -2,28 +2,45 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Register from './pages/Register';
 
+import AdForm from './pages/AdForm';
+import Chat from './pages/Chat';
 import Excavators from './pages/Excavators';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import MachineryDetails from './pages/MachineryDetails';
-import Verfication from './pages/Verification';
-import RenterForm from './pages/RenterForm';
-import RentalEstimation from './pages/RentalEstimation';
-import Payment from './pages/Payment';
-import Success from './pages/Success';
-import Chat from './pages/Chat';
-import AdForm from './pages/AdForm';
 import LoginorRegister from './pages/LoginorRegister';
+import MachineryDetails from './pages/MachineryDetails';
+import Payment from './pages/Payment';
+import RentalEstimation from './pages/RentalEstimation';
+import RenterForm from './pages/RenterForm';
+import Success from './pages/Success';
 import BottomTab from './Tabs/Bottomtab';
+
+import { Provider, useSelector } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+
+
+import { SafeAreaView } from 'react-native';
+import { persistor, store } from './redux/store';
+
 const Stack = createNativeStackNavigator();
 
-export default function App() {
-  return (
+function RenderStack() {
+  const user = useSelector((state) => state.home.user);
 
-    <Stack.Navigator initialRouteName="LoginorRegister">
-      <Stack.Screen name="Register" component={Register} />
-      <Stack.Screen name="Verification" component={Verfication} />
-      <Stack.Screen name="Login" component={Login} />
+  if (!user?.uid) {
+    return (
+      <Stack.Navigator initialRouteName="BottomTab">
+        <Stack.Screen name="Register" component={Register} />
+        {/* <Stack.Screen name="Verification" component={Verificatio} /> */}
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="LoginorRegister" component={LoginorRegister} />
+        <Stack.Screen name="BottomTab" component={BottomTab} />
+      </Stack.Navigator>
+    );
+  }
+
+  return (
+    <Stack.Navigator initialRouteName="Home">
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Excavators" component={Excavators} />
       <Stack.Screen name="MachineryDetails" component={MachineryDetails} />
@@ -33,9 +50,24 @@ export default function App() {
       <Stack.Screen name="Success" component={Success} />
       <Stack.Screen name="Chat" component={Chat} />
       <Stack.Screen name="AdForm" component={AdForm} />
-      <Stack.Screen name="LoginorRegister" component={LoginorRegister} />
-      <Stack.Screen name='BottomTab' component={BottomTab} />
+      <Stack.Screen name="BottomTab" component={BottomTab} />
     </Stack.Navigator>
-
   );
 }
+
+
+const App = () => {
+
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <PersistGate loading={null} persistor={persistor}>
+        <Provider store={store}>
+          <RenderStack />
+        </Provider>
+      </PersistGate>
+    </SafeAreaView>
+  );
+};
+
+export default App;
