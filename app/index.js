@@ -29,12 +29,11 @@ function RenderStack() {
 
   if (!user?.uid) {
     return (
-      <Stack.Navigator initialRouteName="BottomTab">
+      <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Register" component={Register} />
         {/* <Stack.Screen name="Verification" component={Verificatio} /> */}
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="LoginorRegister" component={LoginorRegister} />
-        <Stack.Screen name="BottomTab" component={BottomTab} />
       </Stack.Navigator>
     );
   }
