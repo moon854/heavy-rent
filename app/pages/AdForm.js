@@ -33,6 +33,7 @@ const AdForm = ({ navigation }) => {
         <TextInput placeholder="CNIC Number" keyboardType="numeric" style={{ borderBottomWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 15 }} />
         <TextInput placeholder="Vehicle Name" style={{ borderBottomWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 15 }} />
         <TextInput placeholder="Vehicle Condition" style={{ borderBottomWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 15 }} />
+        <TextInput placeholder="Rent Per Day" style={{ borderBottomWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 15 }} />
 
         {/* File Picker */}
         <TouchableOpacity onPress={pickFile} style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, alignItems: "center", marginBottom: 20, backgroundColor: "#f9f9f9" }}>

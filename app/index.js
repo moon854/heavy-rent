@@ -27,9 +27,9 @@ const Stack = createNativeStackNavigator();
 function RenderStack() {
   const user = useSelector((state) => state.home.user);
 
-  if (!user?.uid) {
+  if (!user?.uid ) {
     return (
-      <Stack.Navigator initialRouteName="Login">
+      <Stack.Navigator initialRouteName="LoginorRegister">
         <Stack.Screen name="Register" component={Register} />
         {/* <Stack.Screen name="Verification" component={Verificatio} /> */}
         <Stack.Screen name="Login" component={Login} />
@@ -39,7 +39,7 @@ function RenderStack() {
   }
 
   return (
-    <Stack.Navigator initialRouteName="Home">
+    <Stack.Navigator initialRouteName="BottomTab">
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Excavators" component={Excavators} />
       <Stack.Screen name="MachineryDetails" component={MachineryDetails} />

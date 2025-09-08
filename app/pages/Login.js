@@ -3,7 +3,7 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const Login = ({ navigation }) => {
   const goToLogin = () => {
-    navigation.navigate("Home");
+    const user = l
 
   }
   return (
