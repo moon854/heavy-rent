@@ -20,7 +20,7 @@ const Login = ({ navigation }) => {
       </TouchableOpacity>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View>
-          <Text style={{marginTop: 20, paddingLeft:20}}>Already have an account, </Text>
+          <Text style={{ marginTop: 20, paddingLeft: 20 }}>Already have an account, </Text>
         </View>
         <View>
           <TouchableOpacity>
