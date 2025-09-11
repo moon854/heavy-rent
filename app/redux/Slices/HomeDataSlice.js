@@ -14,6 +14,7 @@ const homeSlice = createSlice({
         setUser: (state, action) => {
             state.user = action.payload
         },
+
      
        
 
@@ -24,6 +25,7 @@ const homeSlice = createSlice({
 
 export const {
     setUser,
+
 
 } = homeSlice.actions;
 

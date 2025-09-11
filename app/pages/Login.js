@@ -5,6 +5,7 @@ import { LoginWithFBase } from '../Helper/firebaseHelper';
 import { setUser } from '../redux/Slices/HomeDataSlice';
 
 const Login = ({ navigation }) => {
+
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,6 +25,7 @@ const Login = ({ navigation }) => {
     }
   
 
+
   return (
     <View>
       <Text style={{ textAlign: 'center', marginTop: 50, fontWeight: 'bold', fontSize: 20 }}> Login Here</Text>
@@ -38,7 +40,7 @@ const Login = ({ navigation }) => {
       </TouchableOpacity>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View>
-          <Text style={{marginTop: 20, paddingLeft:20}}>Already have an account, </Text>
+          <Text style={{ marginTop: 20, paddingLeft: 20 }}>Already have an account, </Text>
         </View>
         <View>
           <TouchableOpacity

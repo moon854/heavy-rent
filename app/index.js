@@ -26,9 +26,11 @@ const Stack = createNativeStackNavigator();
 function RenderStack() {
   const user = useSelector((state) => state.home.user);
 
-  if (!user?.uid) {
+  if (!user?.uid ) {
     return (
+
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
       </Stack.Navigator>
