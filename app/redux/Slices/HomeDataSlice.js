@@ -4,7 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     user: {},
-   
+
 };
 
 const homeSlice = createSlice({
@@ -14,7 +14,7 @@ const homeSlice = createSlice({
         setUser: (state, action) => {
             state.user = action.payload
         },
-      
+
      
        
 
@@ -25,8 +25,7 @@ const homeSlice = createSlice({
 
 export const {
     setUser,
-  
-   
+
 
 } = homeSlice.actions;
 

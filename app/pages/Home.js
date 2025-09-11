@@ -1,6 +1,5 @@
-import React from 'react'
-import { Text, TextInput, TouchableOpacity, View, Image, ScrollView } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const Home = ({ navigation }) => {
   const goToSubCat = () => {
@@ -73,3 +72,4 @@ const Home = ({ navigation }) => {
 }
 
 export default Home
+
