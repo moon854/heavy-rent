@@ -1,11 +1,22 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../redux/Slices/HomeDataSlice';
 
 const Profile = () => {
+
+
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    // Dispatch logout action
+    dispatch(setUser({}));
+  };
+
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      
+
       {/* Header */}
       <View style={{
         backgroundColor: '#47D6FF',
@@ -34,7 +45,7 @@ const Profile = () => {
 
       {/* Menu Items */}
       <View style={{ marginTop: 40, paddingHorizontal: 20 }}>
-        
+
         {/* Profile */}
         <TouchableOpacity style={{
           flexDirection: 'row',
@@ -72,11 +83,13 @@ const Profile = () => {
         </TouchableOpacity>
 
         {/* Logout */}
-        <TouchableOpacity style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingVertical: 15
-        }}>
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 15
+          }}>
           <MaterialIcons name="logout" size={22} color="#47D6FF" />
           <Text style={{ marginLeft: 15, fontSize: 16 }}>Log out</Text>
         </TouchableOpacity>

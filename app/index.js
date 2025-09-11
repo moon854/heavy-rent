@@ -1,13 +1,10 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import Register from './pages/Register';
 
 import AdForm from './pages/AdForm';
 import Chat from './pages/Chat';
 import Excavators from './pages/Excavators';
 import Home from './pages/Home';
-import Login from './pages/Login';
-import LoginorRegister from './pages/LoginorRegister';
 import MachineryDetails from './pages/MachineryDetails';
 import Payment from './pages/Payment';
 import RentalEstimation from './pages/RentalEstimation';
@@ -20,6 +17,8 @@ import { PersistGate } from 'redux-persist/integration/react';
 
 
 import { SafeAreaView } from 'react-native';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import { persistor, store } from './redux/store';
 
 const Stack = createNativeStackNavigator();
@@ -29,17 +28,15 @@ function RenderStack() {
 
   if (!user?.uid) {
     return (
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Register" component={Register} />
-        {/* <Stack.Screen name="Verification" component={Verificatio} /> */}
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="LoginorRegister" component={LoginorRegister} />
+        <Stack.Screen name="Register" component={Register} />
       </Stack.Navigator>
     );
   }
 
   return (
-    <Stack.Navigator initialRouteName="Home">
+    <Stack.Navigator initialRouteName="BottomTab">
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Excavators" component={Excavators} />
       <Stack.Screen name="MachineryDetails" component={MachineryDetails} />
