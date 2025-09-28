@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { LoginWithFBase } from '../Helper/firebaseHelper';
+import { LoginWithFBase, getDataById } from '../Helper/firebaseHelper';
 import { setUser } from '../redux/Slices/HomeDataSlice';
 
 const Login = ({ navigation }) => {
@@ -11,15 +11,22 @@ const Login = ({ navigation }) => {
   const [password, setPassword] = useState("");
     const handleLoginWithEmail = async () => {
   
-      const user = await LoginWithFBase(
+      const authUser = await LoginWithFBase(
         email,
         password,
       )
   
-      if (user?.uid) {
-        dispatch(setUser(user))
+      if (authUser?.uid) {
+        // Fetch complete user data from Firestore
+        const userData = await getDataById("users", authUser.uid);
+        if (userData) {
+          dispatch(setUser(userData));
+          alert("Login successful!");
+        } else {
+          alert("User data not found");
+        }
       } else {
-        alert("Error in sign up")
+        alert("Error in login")
       }
   
     }

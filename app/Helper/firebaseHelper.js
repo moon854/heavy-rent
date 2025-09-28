@@ -3,7 +3,10 @@ import {
     createUserWithEmailAndPassword,
     sendPasswordResetEmail,
     signInWithEmailAndPassword,
-    signOut
+    signOut,
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider
 } from "firebase/auth";
 import {
     addDoc, collection, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc
@@ -139,14 +142,38 @@ export const logout = async () => {
     }
 };
 
+// ✅ Change Password
+export const changePassword = async (currentPassword, newPassword) => {
+    try {
+        const user = auth.currentUser;
+        
+        if (!user) {
+            throw new Error("No user is currently signed in");
+        }
+
+        // Re-authenticate user with current password
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        
+        // Update password
+        await updatePassword(user, newPassword);
+        
+        console.log("Password updated successfully");
+        return true;
+    } catch (error) {
+        console.error("Error changing password:", error);
+        throw error;
+    }
+};
+
 
 
 
 
 
 export const uploadImageToCloudinary = async (imageUri) => {
-    const CLOUD_NAME = "drrr99dz9";
-    const UPLOAD_PRESET = "react_native_uploads";
+    const CLOUD_NAME = "dwk8uftzt";
+    const UPLOAD_PRESET = "react-native-assets";
 
 
     try {
@@ -170,7 +197,10 @@ export const uploadImageToCloudinary = async (imageUri) => {
 
         const result = await res.json();
 
+        alert(result.secure_url)
+
         return result.secure_url; // 🔥 Cloudinary hosted URL
+
     } catch (err) {
         console.error("Cloudinary upload failed", err);
         throw err;

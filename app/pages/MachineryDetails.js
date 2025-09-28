@@ -1,5 +1,6 @@
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Ionicons } from '@expo/vector-icons';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const MachineryDetails = ({ navigation }) => {
@@ -13,6 +14,14 @@ const MachineryDetails = ({ navigation }) => {
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
+      {/* Header with back button */}
+      <View style={{ backgroundColor: '#47D6FF', justifyContent: 'center', alignItems: 'center', width: '100%', height: 60, flexDirection: 'row' }}>
+        <TouchableOpacity onPress={() => navigation.navigate("BottomTab")} style={{ position: 'absolute', left: 20 }}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>Machinery Details</Text>
+      </View>
+      
       <View>
         <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20 }}>Rippa R57</Text>
       </View>

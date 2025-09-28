@@ -2,13 +2,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 
 import AdForm from './pages/AdForm';
-import Chat from './pages/Chat';
+import ChangePassword from './pages/ChangePassword';
 import Excavators from './pages/Excavators';
-import Home from './pages/Home';
 import MachineryDetails from './pages/MachineryDetails';
 import Payment from './pages/Payment';
+import ProfileEdit from './pages/ProfileEdit';
 import RentalEstimation from './pages/RentalEstimation';
 import RenterForm from './pages/RenterForm';
+import Settings from './pages/Settings';
 import Success from './pages/Success';
 import BottomTab from './Tabs/Bottomtab';
 
@@ -38,17 +39,18 @@ function RenderStack() {
   }
 
   return (
-    <Stack.Navigator initialRouteName="BottomTab">
-      <Stack.Screen name="Home" component={Home} />
+    <Stack.Navigator initialRouteName="BottomTab" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="BottomTab" component={BottomTab} />
       <Stack.Screen name="Excavators" component={Excavators} />
       <Stack.Screen name="MachineryDetails" component={MachineryDetails} />
+      <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
+      <Stack.Screen name="ChangePassword" component={ChangePassword} />
       <Stack.Screen name="RenterForm" component={RenterForm} />
       <Stack.Screen name="RentalEstimation" component={RentalEstimation} />
       <Stack.Screen name="Payment" component={Payment} />
       <Stack.Screen name="Success" component={Success} />
-      <Stack.Screen name="Chat" component={Chat} />
       <Stack.Screen name="AdForm" component={AdForm} />
-      <Stack.Screen name="BottomTab" component={BottomTab} />
+      <Stack.Screen name="Settings" component={Settings} />
     </Stack.Navigator>
   );
 }

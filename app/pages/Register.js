@@ -37,11 +37,12 @@ const Register = ({ navigation }) => {
     const user = await handleSignUp(
       email,
       password,
-      { role: "user", firstName, email, phone, password, imageUrl }
+      { role: "user", firstName, lastName, email, phone, password, imageUrl }
     )
 
     if (user?.uid) {
       dispatch(setUser(user))
+      alert("Account created successfully!")
     } else {
       alert("Error in sign up")
     }
@@ -98,7 +99,7 @@ const Register = ({ navigation }) => {
         <TouchableOpacity onPress={handleImagePicker}>
           <View style={{ width: 100, height: 100, borderRadius: 50, alignSelf: "center", backgroundColor: "#47D6FF", marginTop: 10, alignItems: "center", justifyContent: 'center' }}>
 
-
+    
             {imageUrl != "" ?
 
               <Image source={{ uri: imageUrl }} style={{ width: 100, height: 100 , borderRadius:50 }} />

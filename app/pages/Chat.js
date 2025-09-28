@@ -2,9 +2,12 @@ import React, { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native'
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
+import { useSelector } from 'react-redux';
+import UserProfile from '../../components/UserProfile';
 
 const Chat = ({ navigation }) => {
   const [message, setMessage] = useState("")
+  const user = useSelector((state) => state.home.user);
 
   const sendMessage = () => {
     alert("Message Sent: " + message)
@@ -16,8 +19,11 @@ const Chat = ({ navigation }) => {
       {/* Header */}
       <View style={{ flexDirection: "row", alignItems: "center", padding: 15, borderBottomWidth: 1, borderBottomColor: "#ddd" }}>
         <Entypo name="chevron-left" size={24} color="black" onPress={() => navigation.goBack()} />
-        <Image source={{ uri: "https://img.icons8.com/ios-filled/100/000000/user-male-circle.png" }}
-          style={{ width: 40, height: 40, borderRadius: 20, marginLeft: 10 }} />
+        <UserProfile 
+          size="small" 
+          showName={false}
+          imageStyle={{ marginLeft: 10 }}
+        />
         <View style={{ marginLeft: 10, flex: 1 }}>
           <Text style={{ fontSize: 16, fontWeight: "600" }}>Heavyrent</Text>
           <Text style={{ fontSize: 12, color: "gray" }}>Fast, practical and quality</Text>

@@ -1,13 +1,17 @@
 import AntDesign from '@expo/vector-icons/AntDesign';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import UserProfile from '../../components/UserProfile';
 
 const Home = ({ navigation }) => {
   const goToSubCat = () => {
-    navigation.navigate("Excavators");
+    navigation.getParent()?.navigate("Excavators");
   }
 
   const goToAdForm = () => {
-    navigation.navigate("AdForm");
+    navigation.getParent()?.navigate("AdForm");
   }
 
   return (
@@ -23,9 +27,10 @@ const Home = ({ navigation }) => {
           </View>
         </View>
         <View style={{ width: 120, height: 60 }}>
-          <Image
-            source={require('../../assets/images/dp.png.jpg')}
-            style={{ width: 50, height: 50, borderRadius: 50, marginLeft: 60 }}
+          <UserProfile 
+            size="medium" 
+            showName={false}
+            imageStyle={{ marginLeft: 60 }}
           />
         </View>
       </View>
@@ -42,29 +47,155 @@ const Home = ({ navigation }) => {
 
       {/* Categories Rows */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '80%' }}>
-        <TouchableOpacity onPress={goToSubCat}>
-          <Image source={require('../../assets/images/Excavator.jpg')} style={{ width: 113, height: 80, marginTop: 50, borderColor: '#47D6FF', borderWidth: 1, borderRadius: 10 }} />
+        <TouchableOpacity onPress={goToSubCat} style={{ alignItems: 'center' }}>
+          <View style={{ 
+            width: 113, 
+            height: 80, 
+            marginTop: 50, 
+            borderColor: '#47D6FF', 
+            borderWidth: 1, 
+            borderRadius: 10,
+            backgroundColor: '#f8f9fa',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <MaterialCommunityIcons name="excavator" size={40} color="#47D6FF" />
+          </View>
+          <Text style={{ 
+            marginTop: 8, 
+            fontSize: 14, 
+            fontWeight: '600', 
+            color: '#333',
+            textAlign: 'center'
+          }}>
+            Excavators
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Image source={require('../../assets/images/concrete.jpg')} style={{ width: 113, height: 80, marginTop: 50, borderColor: '#47D6FF', borderWidth: 1, borderRadius: 10 }} />
+        <TouchableOpacity style={{ alignItems: 'center' }}>
+          <View style={{ 
+            width: 113, 
+            height: 80, 
+            marginTop: 50, 
+            borderColor: '#47D6FF', 
+            borderWidth: 1, 
+            borderRadius: 10,
+            backgroundColor: '#f8f9fa',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <MaterialCommunityIcons name="tow-truck" size={40} color="#47D6FF" />
+          </View>
+          <Text style={{ 
+            marginTop: 8, 
+            fontSize: 14, 
+            fontWeight: '600', 
+            color: '#333',
+            textAlign: 'center'
+          }}>
+            Concrete Equipment
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '80%' }}>
-        <TouchableOpacity>
-          <Image source={require('../../assets/images/crane.jpg')} style={{ width: 113, height: 80, marginTop: 50, borderColor: '#47D6FF', borderWidth: 1, borderRadius: 10 }} />
+        <TouchableOpacity style={{ alignItems: 'center' }}>
+          <View style={{ 
+            width: 113, 
+            height: 80, 
+            marginTop: 50, 
+            borderColor: '#47D6FF', 
+            borderWidth: 1, 
+            borderRadius: 10,
+            backgroundColor: '#f8f9fa',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <MaterialCommunityIcons name="crane" size={40} color="#47D6FF" />
+          </View>
+          <Text style={{ 
+            marginTop: 8, 
+            fontSize: 14, 
+            fontWeight: '600', 
+            color: '#333',
+            textAlign: 'center'
+          }}>
+            Cranes
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Image source={require('../../assets/images/builging.jpg')} style={{ width: 113, height: 80, marginTop: 50, borderColor: '#47D6FF', borderWidth: 1, borderRadius: 10 }} />
+        <TouchableOpacity style={{ alignItems: 'center' }}>
+          <View style={{ 
+            width: 113, 
+            height: 80, 
+            marginTop: 50, 
+            borderColor: '#47D6FF', 
+            borderWidth: 1, 
+            borderRadius: 10,
+            backgroundColor: '#f8f9fa',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <MaterialIcons name="business" size={40} color="#47D6FF" />
+          </View>
+          <Text style={{ 
+            marginTop: 8, 
+            fontSize: 14, 
+            fontWeight: '600', 
+            color: '#333',
+            textAlign: 'center'
+          }}>
+            Building Equipment
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '80%' }}>
-        <TouchableOpacity>
-          <Image source={require('../../assets/images/road.jpg')} style={{ width: 113, height: 80, marginTop: 50, borderColor: '#47D6FF', borderWidth: 1, borderRadius: 10 }} />
+        <TouchableOpacity style={{ alignItems: 'center' }}>
+          <View style={{ 
+            width: 113, 
+            height: 80, 
+            marginTop: 50, 
+            borderColor: '#47D6FF', 
+            borderWidth: 1, 
+            borderRadius: 10,
+            backgroundColor: '#f8f9fa',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <MaterialCommunityIcons name="road-variant" size={40} color="#47D6FF" />
+          </View>
+          <Text style={{ 
+            marginTop: 8, 
+            fontSize: 14, 
+            fontWeight: '600', 
+            color: '#333',
+            textAlign: 'center'
+          }}>
+            Road Construction
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Image source={require('../../assets/images/surface.jpg')} style={{ width: 113, height: 80, marginTop: 50, borderColor: '#47D6FF', borderWidth: 1, borderRadius: 10 }} />
+        <TouchableOpacity style={{ alignItems: 'center' }}>
+          <View style={{ 
+            width: 113, 
+            height: 80, 
+            marginTop: 50, 
+            borderColor: '#47D6FF', 
+            borderWidth: 1, 
+            borderRadius: 10,
+            backgroundColor: '#f8f9fa',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <MaterialIcons name="palette" size={40} color="#47D6FF" />
+          </View>
+          <Text style={{ 
+            marginTop: 8, 
+            fontSize: 14, 
+            fontWeight: '600', 
+            color: '#333',
+            textAlign: 'center'
+          }}>
+            Surface Finishing
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

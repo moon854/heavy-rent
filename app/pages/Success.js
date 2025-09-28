@@ -20,7 +20,7 @@ const Success = ({ navigation }) => {
         </Text>
 
         {/* Return Button */}
-        <TouchableOpacity onPress={() => navigation.navigate("Home")} 
+        <TouchableOpacity onPress={() => navigation.navigate("BottomTab")} 
           style={{ backgroundColor: "#47D6FF", padding: 15, borderRadius: 8, width: "90%", alignItems: "center" }}>
           <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>Return To Home</Text>
         </TouchableOpacity>

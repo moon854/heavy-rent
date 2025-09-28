@@ -1,14 +1,27 @@
 import { Image, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { SafeAreaView } from 'react-native';
+import Chat from './Chat';
+import RentalHistory from './History';
+import Home from './Home';
+import Profile from './Profile';
 
-const Excavators = ({ navigation }) => {
+const Tab = createBottomTabNavigator();
+
+// Excavators Content Component
+const ExcavatorsContent = ({ navigation }) => {
   const goToMachineryDetails = () => {
-    navigation.navigate("MachineryDetails");
+    navigation.getParent()?.navigate("MachineryDetails");
   }
 
   return (
     <>
       {/* Header */}
-      <View style={{ backgroundColor: '#47D6FF', justifyContent: 'center', alignItems: 'center', width: '100%', height: 80 }}>
+      <View style={{ backgroundColor: '#47D6FF', justifyContent: 'center', alignItems: 'center', width: '100%', height: 80, flexDirection: 'row' }}>
+        <TouchableOpacity onPress={() => navigation.getParent()?.navigate("BottomTab")} style={{ position: 'absolute', left: 20 }}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
         <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#fff' }}>Excavators</Text>
       </View>
 
@@ -63,6 +76,25 @@ const Excavators = ({ navigation }) => {
         </View>
       </ScrollView>
     </>
+  )
+}
+
+// Main Excavators Component with Bottom Tabs (Home, Chat, History, Profile)
+const Excavators = ({ navigation }) => {
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#4e1717ff' }}>
+      <Tab.Navigator initialRouteName="ExcavatorsList" screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: '#47D6FF',
+        tabBarInactiveTintColor: 'gray',
+      }}>
+        <Tab.Screen options={{ tabBarIcon: ({ color }) => <Ionicons name="construct" size={24} color={color} /> }} name="ExcavatorsList" component={ExcavatorsContent} />
+        <Tab.Screen options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} /> }} name="Home" component={Home} />
+        <Tab.Screen options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubbles" size={24} color={color} /> }} name="Chat" component={Chat} />
+        <Tab.Screen options={{ tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={color} /> }} name="History" component={RentalHistory} />
+        <Tab.Screen options={{ tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} /> }} name="Profile" component={Profile} />
+      </Tab.Navigator>
+    </SafeAreaView>
   )
 }
 
