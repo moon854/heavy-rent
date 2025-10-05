@@ -9,7 +9,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,6 +42,22 @@ const ChangePassword = () => {
     }, 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Function to handle focus transitions without dismissing keyboard
+  const handleFocusTransition = (nextRef) => {
+    if (nextRef && nextRef.current) {
+      // Small delay to prevent keyboard dismissal
+      setTimeout(() => {
+        nextRef.current?.focus();
+      }, 50);
+    }
+  };
+
+  // Function to prevent keyboard dismissal
+  const preventKeyboardDismiss = () => {
+    // This function does nothing but prevents accidental dismissal
+    return;
+  };
 
   const validatePasswords = () => {
     if (!currentPassword.trim()) {
@@ -159,13 +177,16 @@ const ChangePassword = () => {
         onSubmitEditing={onSubmitEditing}
         enablesReturnKeyAutomatically={true}
         textContentType="password"
+        keyboardType="default"
+        autoFocus={false}
+        caretHidden={false}
       />
       <TouchableOpacity 
         style={styles.eyeButton}
         onPress={onToggleVisibility}
       >
         <Ionicons 
-          name={showPassword ? "eye-off" : "eye"} 
+          name={showPassword ? "eye" : "eye-off"} 
           size={20} 
           color="#666" 
         />
@@ -174,16 +195,17 @@ const ChangePassword = () => {
   ));
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
       <ScrollView 
         style={styles.container}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
+        scrollEnabled={true}
+        bounces={false}
+        nestedScrollEnabled={false}
+        removeClippedSubviews={false}
       >
       {/* Header */}
       <View style={styles.header}>
@@ -198,7 +220,8 @@ const ChangePassword = () => {
       </View>
 
       {/* Form */}
-      <View style={styles.formContainer}>
+      <TouchableWithoutFeedback onPress={preventKeyboardDismiss}>
+        <View style={styles.formContainer}>
         <Text style={styles.description}>
           Enter your current password and choose a new password to update your account security.
         </Text>
@@ -213,7 +236,7 @@ const ChangePassword = () => {
             placeholder="Enter your current password"
             showPassword={showCurrentPassword}
             onToggleVisibility={() => setShowCurrentPassword(!showCurrentPassword)}
-            onSubmitEditing={() => newPasswordRef.current?.focus()}
+            onSubmitEditing={() => handleFocusTransition(newPasswordRef)}
           />
         </View>
 
@@ -227,7 +250,7 @@ const ChangePassword = () => {
             placeholder="Enter your new password"
             showPassword={showNewPassword}
             onToggleVisibility={() => setShowNewPassword(!showNewPassword)}
-            onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+            onSubmitEditing={() => handleFocusTransition(confirmPasswordRef)}
           />
           <Text style={styles.helpText}>
             Password must be at least 6 characters long
@@ -270,9 +293,10 @@ const ChangePassword = () => {
           <Text style={styles.tipText}>• Don't reuse passwords from other accounts</Text>
           <Text style={styles.tipText}>• Consider using a password manager</Text>
         </View>
-      </View>
+        </View>
+      </TouchableWithoutFeedback>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

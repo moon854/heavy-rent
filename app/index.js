@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from 'react';
 
 
 import AdForm from './pages/AdForm';
@@ -6,12 +7,16 @@ import ChangePassword from './pages/ChangePassword';
 import Excavators from './pages/Excavators';
 import MachineryDetails from './pages/MachineryDetails';
 import MyAds from './pages/MyAds';
+import NotificationSettings from './pages/NotificationSettings';
+import NotificationTest from './pages/NotificationTest';
 import Payment from './pages/Payment';
 import ProfileEdit from './pages/ProfileEdit';
+import PrivacySettings from './pages/PrivacySettings';
 import RentalEstimation from './pages/RentalEstimation';
 import RenterForm from './pages/RenterForm';
 import Settings from './pages/Settings';
 import Success from './pages/Success';
+import ThemeSettings from './pages/ThemeSettings';
 import BottomTab from './Tabs/Bottomtab';
 
 import { Provider, useSelector } from 'react-redux';
@@ -23,6 +28,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import { persistor, store } from './redux/store';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import appNotificationManager from './services/AppNotificationManager';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,18 +55,25 @@ function RenderStack() {
       <Stack.Screen name="ChangePassword" component={ChangePassword} />
       <Stack.Screen name="RenterForm" component={RenterForm} />
       <Stack.Screen name="RentalEstimation" component={RentalEstimation} />
-      <Stack.Screen name="Payment" component={Payment} />
-      <Stack.Screen name="Success" component={Success} />
-      <Stack.Screen name="AdForm" component={AdForm} />
-      <Stack.Screen name="MyAds" component={MyAds} />
-      <Stack.Screen name="Settings" component={Settings} />
+        <Stack.Screen name="Payment" component={Payment} />
+        <Stack.Screen name="Success" component={Success} />
+        <Stack.Screen name="AdForm" component={AdForm} />
+        <Stack.Screen name="MyAds" component={MyAds} />
+        <Stack.Screen name="Settings" component={Settings} />
+        <Stack.Screen name="PrivacySettings" component={PrivacySettings} />
+        <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
+        <Stack.Screen name="NotificationTest" component={NotificationTest} />
+        <Stack.Screen name="ThemeSettings" component={ThemeSettings} />
     </Stack.Navigator>
   );
 }
 
 
 const App = () => {
-
+  // Initialize notification system when app starts
+  React.useEffect(() => {
+    appNotificationManager.initialize();
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>

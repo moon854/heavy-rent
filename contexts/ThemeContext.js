@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setTheme } from '../app/redux/Slices/HomeDataSlice';
+import { setTheme, toggleSetting } from '../app/redux/Slices/HomeDataSlice';
 import { Colors } from '../constants/Colors';
 
 const ThemeContext = createContext();
@@ -48,10 +48,30 @@ export const ThemeProvider = ({ children }) => {
     theme: theme || 'light',
     colors,
     isDark: (theme || 'light') === 'dark',
+    isLight: (theme || 'light') === 'light',
     toggleTheme: () => {
       const currentTheme = theme || 'light';
       const newTheme = currentTheme === 'light' ? 'dark' : 'light';
       dispatch(setTheme(newTheme));
+      // Also update the darkMode setting
+      dispatch(toggleSetting('darkMode'));
+    },
+    setTheme: (newTheme) => {
+      dispatch(setTheme(newTheme));
+      // Update darkMode setting based on theme
+      dispatch(toggleSetting('darkMode'));
+    },
+    setLightMode: () => {
+      dispatch(setTheme('light'));
+      if (settings.darkMode) {
+        dispatch(toggleSetting('darkMode'));
+      }
+    },
+    setDarkMode: () => {
+      dispatch(setTheme('dark'));
+      if (!settings.darkMode) {
+        dispatch(toggleSetting('darkMode'));
+      }
     }
   };
 

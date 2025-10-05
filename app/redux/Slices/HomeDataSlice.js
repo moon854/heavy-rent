@@ -15,7 +15,36 @@ const initialState = {
         autoSync: true,
         pushNotifications: true,
         emailNotifications: false,
-        smsNotifications: false
+        smsNotifications: false,
+        // Privacy Settings
+        publicProfile: true,
+        showPhoneNumber: true,
+        showLocation: true,
+        analyticsEnabled: true,
+        photoAccess: true,
+        locationTracking: true,
+        marketingEmails: false,
+        smsMessages: false,
+        phoneCalls: false,
+        // Notification Settings
+        notificationSound: true,
+        notificationVibration: true,
+        adPostedNotification: true,
+        adViewNotification: false,
+        rentalRequestNotification: true,
+        adExpiryNotification: true,
+        messageNotification: true,
+        emailNotification: false,
+        smsNotification: false,
+        paymentNotification: true,
+        paymentReminderNotification: false,
+        promotionalNotification: false,
+        appUpdateNotification: true,
+        // Theme Settings
+        autoTheme: false,
+        highContrast: false,
+        reduceMotion: false,
+        largeText: false
     }
 };
 

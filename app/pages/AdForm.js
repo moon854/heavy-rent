@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getAllCategories, addData, updateData } from '../Helper/firebaseHelper';
 import { uploadImageToCloudinary } from '../Helper/firebaseHelper';
 import { useSelector } from 'react-redux';
+import notificationService from '../services/NotificationService';
 
 const AdForm = ({ navigation, route }) => {
   const [categories, setCategories] = useState([]);
@@ -265,16 +266,32 @@ const AdForm = ({ navigation, route }) => {
         await updateData('machinery', editingAdId, machineryData);
         console.log('Successfully updated ad with ID:', editingAdId);
         
-        Alert.alert('Success', 'Ad updated successfully!', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+          Alert.alert('Success', 'Ad updated successfully!', [
+            { text: 'OK', onPress: () => {
+              // Send notification if enabled
+              if (settings.adPostedNotification !== false) {
+                notificationService.sendLocalNotification(
+                  'Ad Updated Successfully! ✏️',
+                  `Your "${formData.vehicleName}" ad has been updated`,
+                  { type: 'ad_updated', adName: formData.vehicleName }
+                );
+              }
+              navigation.goBack();
+            }}
+          ]);
       } else {
         // Create new ad
         const docId = await addData('machinery', machineryData);
         console.log('Successfully saved to Firebase with ID:', docId);
         
         Alert.alert('Success', `Ad posted successfully! (ID: ${docId})`, [
-          { text: 'OK', onPress: () => navigation.goBack() }
+          { text: 'OK', onPress: () => {
+            // Send notification if enabled
+            if (settings.adPostedNotification !== false) {
+              notificationService.notifyNewAdPosted(formData.vehicleName, selectedCategory);
+            }
+            navigation.goBack();
+          }}
         ]);
       }
 

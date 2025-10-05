@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { getAllData, deleteData } from '../Helper/firebaseHelper';
+import notificationService from '../services/NotificationService';
 
 const MyAds = ({ navigation }) => {
   const [myAds, setMyAds] = useState([]);
@@ -67,17 +68,24 @@ const MyAds = ({ navigation }) => {
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => deleteAd(ad.id)
+          onPress: () => deleteAd(ad)
         }
       ]
     );
   };
 
-  const deleteAd = async (adId) => {
+  const deleteAd = async (ad) => {
     try {
-      console.log('Deleting ad with ID:', adId);
-      await deleteData('machinery', adId);
+      console.log('Deleting ad with ID:', ad.id);
+      await deleteData('machinery', ad.id);
       console.log('Ad deleted successfully');
+      
+      // Send notification
+      notificationService.sendLocalNotification(
+        'Ad Deleted Successfully 🗑️',
+        `Your "${ad.name}" ad has been permanently deleted`,
+        { type: 'ad_deleted', adName: ad.name }
+      );
       
       // Refresh the ads list
       await fetchMyAds();

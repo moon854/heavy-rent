@@ -46,16 +46,28 @@ export const getAllData = async (collectionName) => {
 // ✅ Get all categories
 export const getAllCategories = async () => {
     try {
+        console.log('Fetching categories from Firestore...');
         const querySnapshot = await getDocs(collection(db, 'categories'));
         const categories = [];
         querySnapshot.forEach((doc) => {
             categories.push({ id: doc.id, ...doc.data() });
         });
         // Sort by order field
-        return categories.sort((a, b) => (a.order || 0) - (b.order || 0));
+        const sortedCategories = categories.sort((a, b) => (a.order || 0) - (b.order || 0));
+        console.log('Fetched categories:', sortedCategories);
+        return sortedCategories;
     } catch (e) {
         console.error("Error getting categories: ", e);
-        return [];
+        // Return default categories if Firestore is unavailable
+        console.log('Returning default categories due to Firestore error');
+        return [
+            { id: 'excavators', name: 'Excavators' },
+            { id: 'cranes', name: 'Cranes' },
+            { id: 'concrete-equipment', name: 'Concrete Equipment' },
+            { id: 'building-equipment', name: 'Building Equipment' },
+            { id: 'road-construction', name: 'Road Construction' },
+            { id: 'surface-finishing', name: 'Surface Finishing' }
+        ];
     }
 };
 

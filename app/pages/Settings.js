@@ -22,7 +22,7 @@ const Settings = ({ navigation }) => {
     smsNotifications: false
   };
   const dispatch = useDispatch();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, toggleTheme } = useTheme();
   
   // Force re-render when screen comes into focus
   useFocusEffect(
@@ -45,11 +45,19 @@ const Settings = ({ navigation }) => {
   };
 
   const handlePrivacySettings = () => {
-    Alert.alert(
-      'Privacy Settings',
-      'Privacy settings will be implemented soon!',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('PrivacySettings');
+  };
+
+  const handleNotificationSettings = () => {
+    navigation.navigate('NotificationSettings');
+  };
+
+  const handleThemeSettings = () => {
+    navigation.navigate('ThemeSettings');
+  };
+
+  const handleNotificationTest = () => {
+    navigation.navigate('NotificationTest');
   };
 
   const handleDataManagement = () => {
@@ -243,6 +251,24 @@ const Settings = ({ navigation }) => {
           subtitle="Manage your privacy preferences"
           onPress={handlePrivacySettings}
         />
+        <SettingItem
+          icon={<Ionicons name="notifications-outline" size={24} color="#47D6FF" />}
+          title="Notification Settings"
+          subtitle="Customize your notification preferences"
+          onPress={handleNotificationSettings}
+        />
+        <SettingItem
+          icon={<Ionicons name="color-palette-outline" size={24} color="#47D6FF" />}
+          title="Theme Settings"
+          subtitle="Customize appearance and themes"
+          onPress={handleThemeSettings}
+        />
+        <SettingItem
+          icon={<Ionicons name="flask-outline" size={24} color="#47D6FF" />}
+          title="Test Notifications"
+          subtitle="Test all notification types"
+          onPress={handleNotificationTest}
+        />
       </View>
 
       {/* Notification Settings */}
@@ -283,7 +309,10 @@ const Settings = ({ navigation }) => {
           subtitle="Switch to dark theme"
           showSwitch={true}
           switchValue={settings.darkMode}
-          onSwitchChange={() => handleToggleSetting('darkMode')}
+          onSwitchChange={() => {
+            handleToggleSetting('darkMode');
+            toggleTheme();
+          }}
         />
         <SettingItem
           icon={<Ionicons name="volume-high-outline" size={24} color="#47D6FF" />}
