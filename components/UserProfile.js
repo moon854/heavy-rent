@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 
 const UserProfile = ({ 
@@ -7,7 +7,8 @@ const UserProfile = ({
   showName = true, 
   style = {},
   textStyle = {},
-  imageStyle = {}
+  imageStyle = {},
+  onPress = null
 }) => {
   const user = useSelector((state) => state.home.user);
   
@@ -49,7 +50,7 @@ const UserProfile = ({
     : user?.firstName || 'User';
   const profileImage = user?.imageUrl || require('../assets/images/dp.png.jpg');
 
-  return (
+  const ProfileContent = () => (
     <View style={[styles.container, style]}>
       <Image
         source={typeof profileImage === 'string' ? { uri: profileImage } : profileImage}
@@ -69,6 +70,14 @@ const UserProfile = ({
         </Text>
       )}
     </View>
+  );
+
+  return onPress ? (
+    <TouchableOpacity onPress={onPress}>
+      <ProfileContent />
+    </TouchableOpacity>
+  ) : (
+    <ProfileContent />
   );
 };
 

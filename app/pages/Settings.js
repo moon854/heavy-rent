@@ -3,22 +3,14 @@ import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet, ScrollView } f
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import { refreshUser } from '../redux/Slices/HomeDataSlice';
+import { refreshUser, toggleSetting } from '../redux/Slices/HomeDataSlice';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Settings = ({ navigation }) => {
-  const user = useSelector((state) => state.home.user);
-  const dispatch = useDispatch();
-  
-  // Force re-render when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      // Force refresh of user data when returning from ProfileEdit
-      dispatch(refreshUser());
-    }, [dispatch])
-  );
-  
-  // Settings state
-  const [settings, setSettings] = useState({
+  // Safe state access with comprehensive fallbacks
+  const homeState = useSelector((state) => state?.home) || {};
+  const user = homeState.user || {};
+  const settings = homeState.settings || {
     notifications: true,
     soundEnabled: true,
     vibrationEnabled: true,
@@ -28,13 +20,20 @@ const Settings = ({ navigation }) => {
     pushNotifications: true,
     emailNotifications: false,
     smsNotifications: false
-  });
+  };
+  const dispatch = useDispatch();
+  const { colors, isDark } = useTheme();
+  
+  // Force re-render when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Force refresh of user data when returning from ProfileEdit
+      dispatch(refreshUser());
+    }, [dispatch])
+  );
 
-  const toggleSetting = (settingName) => {
-    setSettings(prev => ({
-      ...prev,
-      [settingName]: !prev[settingName]
-    }));
+  const handleToggleSetting = (settingName) => {
+    dispatch(toggleSetting(settingName));
   };
 
   const handleProfileEdit = () => {
@@ -79,16 +78,16 @@ const Settings = ({ navigation }) => {
 
   const SettingItem = ({ icon, title, subtitle, onPress, showSwitch = false, switchValue = false, onSwitchChange }) => (
     <TouchableOpacity 
-      style={styles.settingItem} 
+      style={dynamicStyles.settingItem} 
       onPress={onPress}
       disabled={showSwitch}
     >
-      <View style={styles.settingIcon}>
+      <View style={dynamicStyles.settingIcon}>
         {icon}
       </View>
-      <View style={styles.settingContent}>
-        <Text style={styles.settingTitle}>{title}</Text>
-        {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
+      <View style={dynamicStyles.settingContent}>
+        <Text style={dynamicStyles.settingTitle}>{title}</Text>
+        {subtitle && <Text style={dynamicStyles.settingSubtitle}>{subtitle}</Text>}
       </View>
       {showSwitch ? (
         <Switch
@@ -103,35 +102,129 @@ const Settings = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  const dynamicStyles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      backgroundColor: '#47D6FF',
+      paddingTop: 50,
+      paddingBottom: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+    },
+    backButton: {
+      padding: 5,
+    },
+    headerTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#fff',
+    },
+    placeholder: {
+      width: 34,
+    },
+    userSection: {
+      backgroundColor: colors.background,
+      margin: 20,
+      borderRadius: 12,
+      padding: 20,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    userInfo: {
+      alignItems: 'center',
+    },
+    userName: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 5,
+    },
+    userEmail: {
+      fontSize: 14,
+      color: colors.icon,
+    },
+    section: {
+      marginHorizontal: 20,
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 10,
+      marginLeft: 5,
+    },
+    settingItem: {
+      backgroundColor: colors.background,
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 15,
+      borderRadius: 8,
+      marginBottom: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    settingIcon: {
+      marginRight: 15,
+    },
+    settingContent: {
+      flex: 1,
+    },
+    settingTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 2,
+    },
+    settingSubtitle: {
+      fontSize: 12,
+      color: colors.icon,
+    },
+    bottomSpacing: {
+      height: 30,
+    },
+  });
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={dynamicStyles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={dynamicStyles.header}>
         <TouchableOpacity 
-          style={styles.backButton}
+          style={dynamicStyles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <View style={styles.placeholder} />
+        <Text style={dynamicStyles.headerTitle}>Settings</Text>
+        <View style={dynamicStyles.placeholder} />
       </View>
 
       {/* User Info Section */}
-      <View style={styles.userSection}>
-        <View style={styles.userInfo}>
-          <Text key={`${user?.firstName}-${user?.lastName}`} style={styles.userName}>
+      <View style={dynamicStyles.userSection}>
+        <View style={dynamicStyles.userInfo}>
+          <Text key={`${user?.firstName}-${user?.lastName}`} style={dynamicStyles.userName}>
             {user?.firstName && user?.lastName 
               ? `${user.firstName} ${user.lastName}` 
               : user?.firstName || 'User'}
           </Text>
-          <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
+          <Text style={dynamicStyles.userEmail}>{user?.email || 'user@example.com'}</Text>
         </View>
       </View>
 
       {/* Account Settings */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
+      <View style={dynamicStyles.section}>
+        <Text style={dynamicStyles.sectionTitle}>Account</Text>
         <SettingItem
           icon={<Ionicons name="person-outline" size={24} color="#47D6FF" />}
           title="Edit Profile"
@@ -153,15 +246,15 @@ const Settings = ({ navigation }) => {
       </View>
 
       {/* Notification Settings */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Notifications</Text>
+      <View style={dynamicStyles.section}>
+        <Text style={dynamicStyles.sectionTitle}>Notifications</Text>
         <SettingItem
           icon={<Ionicons name="notifications-outline" size={24} color="#47D6FF" />}
           title="Push Notifications"
           subtitle="Receive notifications on your device"
           showSwitch={true}
           switchValue={settings.pushNotifications}
-          onSwitchChange={() => toggleSetting('pushNotifications')}
+          onSwitchChange={() => handleToggleSetting('pushNotifications')}
         />
         <SettingItem
           icon={<Ionicons name="mail-outline" size={24} color="#47D6FF" />}
@@ -169,7 +262,7 @@ const Settings = ({ navigation }) => {
           subtitle="Receive notifications via email"
           showSwitch={true}
           switchValue={settings.emailNotifications}
-          onSwitchChange={() => toggleSetting('emailNotifications')}
+          onSwitchChange={() => handleToggleSetting('emailNotifications')}
         />
         <SettingItem
           icon={<Ionicons name="chatbubble-outline" size={24} color="#47D6FF" />}
@@ -177,20 +270,20 @@ const Settings = ({ navigation }) => {
           subtitle="Receive notifications via SMS"
           showSwitch={true}
           switchValue={settings.smsNotifications}
-          onSwitchChange={() => toggleSetting('smsNotifications')}
+          onSwitchChange={() => handleToggleSetting('smsNotifications')}
         />
       </View>
 
       {/* App Settings */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Preferences</Text>
+      <View style={dynamicStyles.section}>
+        <Text style={dynamicStyles.sectionTitle}>App Preferences</Text>
         <SettingItem
           icon={<Ionicons name="moon-outline" size={24} color="#47D6FF" />}
           title="Dark Mode"
           subtitle="Switch to dark theme"
           showSwitch={true}
           switchValue={settings.darkMode}
-          onSwitchChange={() => toggleSetting('darkMode')}
+          onSwitchChange={() => handleToggleSetting('darkMode')}
         />
         <SettingItem
           icon={<Ionicons name="volume-high-outline" size={24} color="#47D6FF" />}
@@ -198,7 +291,7 @@ const Settings = ({ navigation }) => {
           subtitle="Enable app sounds"
           showSwitch={true}
           switchValue={settings.soundEnabled}
-          onSwitchChange={() => toggleSetting('soundEnabled')}
+          onSwitchChange={() => handleToggleSetting('soundEnabled')}
         />
         <SettingItem
           icon={<Ionicons name="phone-portrait-outline" size={24} color="#47D6FF" />}
@@ -206,20 +299,20 @@ const Settings = ({ navigation }) => {
           subtitle="Enable haptic feedback"
           showSwitch={true}
           switchValue={settings.vibrationEnabled}
-          onSwitchChange={() => toggleSetting('vibrationEnabled')}
+          onSwitchChange={() => handleToggleSetting('vibrationEnabled')}
         />
       </View>
 
       {/* Data & Privacy */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Data & Privacy</Text>
+      <View style={dynamicStyles.section}>
+        <Text style={dynamicStyles.sectionTitle}>Data & Privacy</Text>
         <SettingItem
           icon={<Ionicons name="location-outline" size={24} color="#47D6FF" />}
           title="Location Services"
           subtitle="Allow location access for better service"
           showSwitch={true}
           switchValue={settings.locationServices}
-          onSwitchChange={() => toggleSetting('locationServices')}
+          onSwitchChange={() => handleToggleSetting('locationServices')}
         />
         <SettingItem
           icon={<Ionicons name="sync-outline" size={24} color="#47D6FF" />}
@@ -227,7 +320,7 @@ const Settings = ({ navigation }) => {
           subtitle="Automatically sync your data"
           showSwitch={true}
           switchValue={settings.autoSync}
-          onSwitchChange={() => toggleSetting('autoSync')}
+          onSwitchChange={() => handleToggleSetting('autoSync')}
         />
         <SettingItem
           icon={<Ionicons name="folder-outline" size={24} color="#47D6FF" />}
@@ -238,8 +331,8 @@ const Settings = ({ navigation }) => {
       </View>
 
       {/* Support */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Support</Text>
+      <View style={dynamicStyles.section}>
+        <Text style={dynamicStyles.sectionTitle}>Support</Text>
         <SettingItem
           icon={<Ionicons name="help-circle-outline" size={24} color="#47D6FF" />}
           title="Help & Support"
@@ -255,7 +348,7 @@ const Settings = ({ navigation }) => {
       </View>
 
       {/* Bottom Spacing */}
-      <View style={styles.bottomSpacing} />
+      <View style={dynamicStyles.bottomSpacing} />
     </ScrollView>
   );
 };

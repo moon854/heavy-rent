@@ -5,6 +5,7 @@ import AdForm from './pages/AdForm';
 import ChangePassword from './pages/ChangePassword';
 import Excavators from './pages/Excavators';
 import MachineryDetails from './pages/MachineryDetails';
+import MyAds from './pages/MyAds';
 import Payment from './pages/Payment';
 import ProfileEdit from './pages/ProfileEdit';
 import RentalEstimation from './pages/RentalEstimation';
@@ -21,6 +22,7 @@ import { SafeAreaView } from 'react-native';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { persistor, store } from './redux/store';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -50,6 +52,7 @@ function RenderStack() {
       <Stack.Screen name="Payment" component={Payment} />
       <Stack.Screen name="Success" component={Success} />
       <Stack.Screen name="AdForm" component={AdForm} />
+      <Stack.Screen name="MyAds" component={MyAds} />
       <Stack.Screen name="Settings" component={Settings} />
     </Stack.Navigator>
   );
@@ -61,11 +64,13 @@ const App = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <PersistGate loading={null} persistor={persistor}>
-        <Provider store={store}>
-          <RenderStack />
-        </Provider>
-      </PersistGate>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <ThemeProvider>
+            <RenderStack />
+          </ThemeProvider>
+        </PersistGate>
+      </Provider>
     </SafeAreaView>
   );
 };

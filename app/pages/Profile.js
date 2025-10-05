@@ -82,6 +82,20 @@ const Profile = () => {
           <Text style={{ marginLeft: 15, fontSize: 16 }}>My profile</Text>
         </TouchableOpacity>
 
+        {/* My Ads */}
+        <TouchableOpacity 
+          onPress={() => navigation.getParent()?.navigate('MyAds')}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 15,
+            borderBottomWidth: 1,
+            borderBottomColor: '#eee'
+          }}>
+          <Ionicons name="document-text-outline" size={22} color="#47D6FF" />
+          <Text style={{ marginLeft: 15, fontSize: 16 }}>My Ads</Text>
+        </TouchableOpacity>
+
         {/* Settings */}
         <TouchableOpacity 
           onPress={() => navigation.getParent()?.navigate('Settings')}

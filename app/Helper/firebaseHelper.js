@@ -43,6 +43,59 @@ export const getAllData = async (collectionName) => {
     }
 };
 
+// ✅ Get all categories
+export const getAllCategories = async () => {
+    try {
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        const categories = [];
+        querySnapshot.forEach((doc) => {
+            categories.push({ id: doc.id, ...doc.data() });
+        });
+        // Sort by order field
+        return categories.sort((a, b) => (a.order || 0) - (b.order || 0));
+    } catch (e) {
+        console.error("Error getting categories: ", e);
+        return [];
+    }
+};
+
+// ✅ Get machinery by category
+export const getMachineryByCategory = async (categoryId) => {
+    try {
+        console.log('Fetching machinery for category:', categoryId);
+        const querySnapshot = await getDocs(collection(db, 'machinery'));
+        const machinery = [];
+        querySnapshot.forEach((doc) => {
+            const data = { id: doc.id, ...doc.data() };
+            console.log('Checking machinery item:', {
+                id: data.id,
+                name: data.name,
+                category: data.category,
+                categoryId: data.categoryId,
+                categoryName: data.categoryName
+            });
+            // Check if it matches by category ID, category name, or categoryName field
+            // Also check for partial matches and case-insensitive matching
+            const matchesCategory = data.categoryId === categoryId || 
+                data.category === categoryId || 
+                data.categoryName === categoryId ||
+                data.categoryId?.toLowerCase() === categoryId?.toLowerCase() ||
+                data.category?.toLowerCase() === categoryId?.toLowerCase() ||
+                data.categoryName?.toLowerCase() === categoryId?.toLowerCase();
+                
+            if (matchesCategory) {
+                console.log('✅ Adding machinery to results:', data.name);
+                machinery.push(data);
+            }
+        });
+        console.log(`Found ${machinery.length} machinery items for category:`, categoryId);
+        return machinery;
+    } catch (e) {
+        console.error("Error getting machinery by category: ", e);
+        return [];
+    }
+};
+
 // ✅ Get single document
 export const getDataById = async (collectionName, id) => {
     try {
@@ -175,10 +228,9 @@ export const uploadImageToCloudinary = async (imageUri) => {
     const CLOUD_NAME = "dwk8uftzt";
     const UPLOAD_PRESET = "react-native-assets";
 
-
     try {
-       
-
+        console.log("Starting Cloudinary upload for:", imageUri);
+        
         let data = new FormData();
         data.append("file", {
             uri: imageUri,
@@ -187,22 +239,47 @@ export const uploadImageToCloudinary = async (imageUri) => {
         });
         data.append("upload_preset", UPLOAD_PRESET);
 
+        console.log("FormData prepared, sending request...");
+
         const res = await fetch(
             `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
             {
                 method: "POST",
                 body: data,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             }
         );
 
-        const result = await res.json();
+        console.log("Response received, status:", res.status);
 
-        alert(result.secure_url)
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Cloudinary API error:", errorText);
+            throw new Error(`Cloudinary upload failed: ${res.status} - ${errorText}`);
+        }
+
+        const result = await res.json();
+        console.log("Cloudinary response:", result);
+
+        if (!result.secure_url) {
+            console.error("No secure_url in response:", result);
+            throw new Error("No secure_url returned from Cloudinary");
+        }
+
+        console.log("Image uploaded successfully:", result.secure_url);
+        console.log("URL validation:", {
+            url: result.secure_url,
+            startsWithHttp: result.secure_url.startsWith('http'),
+            length: result.secure_url.length
+        });
 
         return result.secure_url; // 🔥 Cloudinary hosted URL
 
     } catch (err) {
         console.error("Cloudinary upload failed", err);
+        console.error("Error details:", err.message);
         throw err;
     }
 };
