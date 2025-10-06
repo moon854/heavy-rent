@@ -8,11 +8,6 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "extra": {
-      "eas": {
-        "projectId": "heavyrent-app-2024"
-      }
-    },
     "ios": {
       "supportsTablet": true
     },

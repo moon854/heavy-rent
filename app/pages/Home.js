@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useState, useEffect } from 'react';
 import { getAllCategories } from '../Helper/firebaseHelper';
@@ -141,13 +141,13 @@ const Home = ({ navigation }) => {
       <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '80%' }}>
         <TouchableOpacity onPress={goToSubCat}>
           <View style={{ width: 113, height: 80, marginTop: 20, borderColor: colors.primary, borderWidth: 1, borderRadius: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.card }}>
-            <Ionicons name="construct" size={30} color={colors.primary} />
+            <MaterialCommunityIcons name="excavator" size={30} color={colors.primary} />
             <Text style={{ fontSize: 10, color: colors.primary, marginTop: 3, textAlign: 'center', fontWeight: '600' }}>Excavators</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={goToConcreteEquipment}>
           <View style={{ width: 113, height: 80, marginTop: 20, borderColor: colors.primary, borderWidth: 1, borderRadius: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.card }}>
-            <Ionicons name="cube" size={30} color={colors.primary} />
+            <MaterialCommunityIcons name="tow-truck" size={30} color={colors.primary} />
             <Text style={{ fontSize: 10, color: colors.primary, marginTop: 3, textAlign: 'center', fontWeight: '600' }}>Concrete Equipment</Text>
           </View>
         </TouchableOpacity>
@@ -156,7 +156,7 @@ const Home = ({ navigation }) => {
       <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '80%' }}>
         <TouchableOpacity onPress={goToCranes}>
           <View style={{ width: 113, height: 80, marginTop: 50, borderColor: colors.primary, borderWidth: 1, borderRadius: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.card }}>
-            <Ionicons name="git-network" size={30} color={colors.primary} />
+            <MaterialCommunityIcons name="crane" size={30} color={colors.primary} />
             <Text style={{ fontSize: 10, color: colors.primary, marginTop: 3, textAlign: 'center', fontWeight: '600' }}>Crane</Text>
           </View>
         </TouchableOpacity>
@@ -171,7 +171,7 @@ const Home = ({ navigation }) => {
       <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '80%' }}>
         <TouchableOpacity onPress={goToRoadConstruction}>
           <View style={{ width: 113, height: 80, marginTop: 50, borderColor: colors.primary, borderWidth: 1, borderRadius: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.card }}>
-            <Ionicons name="car" size={30} color={colors.primary} />
+            <FontAwesome name="road" size={30} color={colors.primary} />
             <Text style={{ fontSize: 10, color: colors.primary, marginTop: 3, textAlign: 'center', fontWeight: '600' }}>Road Construction</Text>
           </View>
         </TouchableOpacity>

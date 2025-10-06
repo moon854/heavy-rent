@@ -6,6 +6,7 @@ import Chat from '../pages/Chat';
 import RentalHistory from '../pages/History';
 import Home from '../pages/Home';
 import Profile from '../pages/Profile';
+import { useTheme } from '../../contexts/ThemeContext';
 
 
 
@@ -14,12 +15,18 @@ import Profile from '../pages/Profile';
 const Tab = createBottomTabNavigator();
 
 export default function BottomTab() {
+    const { colors, isDark } = useTheme();
+    
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#4e1717ff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
             <Tab.Navigator screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: '#47D6FF',
-                tabBarInactiveTintColor: 'gray',
+                tabBarActiveTintColor: colors.primary,
+                tabBarInactiveTintColor: colors.icon,
+                tabBarStyle: {
+                    backgroundColor: colors.card,
+                    borderTopColor: colors.border,
+                },
             }}>
                 <Tab.Screen options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} /> }} name="Home" component={Home} />
 

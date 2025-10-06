@@ -27,7 +27,7 @@ import { SafeAreaView } from 'react-native';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { persistor, store } from './redux/store';
-import { ThemeProvider } from '../contexts/ThemeContext';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import appNotificationManager from './services/AppNotificationManager';
 
 const Stack = createNativeStackNavigator();
@@ -76,14 +76,22 @@ const App = () => {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <ThemeProvider>
-            <RenderStack />
-          </ThemeProvider>
-        </PersistGate>
-      </Provider>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
+      </PersistGate>
+    </Provider>
+  );
+};
+
+const AppContent = () => {
+  const { colors } = useTheme();
+  
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <RenderStack />
     </SafeAreaView>
   );
 };

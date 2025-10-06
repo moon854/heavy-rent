@@ -28,19 +28,12 @@ export const ThemeProvider = ({ children }) => {
     autoSync: true,
     pushNotifications: true,
     emailNotifications: false,
-    smsNotifications: false
+    smsNotifications: false,
+    autoTheme: false,
+    highContrast: false,
+    reduceMotion: false,
+    largeText: false
   };
-
-  // Update theme when darkMode setting changes
-  useEffect(() => {
-    if (settings && typeof settings === 'object' && settings.hasOwnProperty('darkMode')) {
-      const darkMode = settings.darkMode || false;
-      const newTheme = darkMode ? 'dark' : 'light';
-      if (newTheme !== theme) {
-        dispatch(setTheme(newTheme));
-      }
-    }
-  }, [settings?.darkMode, theme, dispatch]);
 
   const colors = Colors[theme] || Colors.light;
 
@@ -50,27 +43,44 @@ export const ThemeProvider = ({ children }) => {
     isDark: (theme || 'light') === 'dark',
     isLight: (theme || 'light') === 'light',
     toggleTheme: () => {
-      const currentTheme = theme || 'light';
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      dispatch(setTheme(newTheme));
-      // Also update the darkMode setting
-      dispatch(toggleSetting('darkMode'));
+      try {
+        const currentTheme = theme || 'light';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        // Update both theme and darkMode setting together
+        dispatch(setTheme(newTheme));
+        dispatch(toggleSetting('darkMode'));
+      } catch (error) {
+        console.error('Error in toggleTheme:', error);
+      }
     },
     setTheme: (newTheme) => {
-      dispatch(setTheme(newTheme));
-      // Update darkMode setting based on theme
-      dispatch(toggleSetting('darkMode'));
+      try {
+        dispatch(setTheme(newTheme));
+        // Update darkMode setting based on theme
+        dispatch(toggleSetting('darkMode'));
+      } catch (error) {
+        console.error('Error in setTheme:', error);
+      }
     },
     setLightMode: () => {
-      dispatch(setTheme('light'));
-      if (settings.darkMode) {
-        dispatch(toggleSetting('darkMode'));
+      try {
+        dispatch(setTheme('light'));
+        if (settings && settings.darkMode) {
+          dispatch(toggleSetting('darkMode'));
+        }
+      } catch (error) {
+        console.error('Error in setLightMode:', error);
       }
     },
     setDarkMode: () => {
-      dispatch(setTheme('dark'));
-      if (!settings.darkMode) {
-        dispatch(toggleSetting('darkMode'));
+      try {
+        dispatch(setTheme('dark'));
+        if (settings && !settings.darkMode) {
+          dispatch(toggleSetting('darkMode'));
+        }
+      } catch (error) {
+        console.error('Error in setDarkMode:', error);
       }
     }
   };

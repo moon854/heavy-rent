@@ -7,21 +7,37 @@ import { useTheme } from '../../contexts/ThemeContext';
 
 const ThemeSettings = ({ navigation }) => {
   const homeState = useSelector((state) => state?.home) || {};
-  const settings = homeState.settings || {};
+  const settings = homeState.settings || {
+    autoTheme: false,
+    highContrast: false,
+    reduceMotion: false,
+    largeText: false,
+    darkMode: false
+  };
   const dispatch = useDispatch();
   const { colors, isDark, toggleTheme, setLightMode, setDarkMode } = useTheme();
   const [selectedTheme, setSelectedTheme] = useState(isDark ? 'dark' : 'light');
 
   const handleToggleSetting = (settingName) => {
-    dispatch(toggleSetting(settingName));
+    try {
+      if (settingName) {
+        dispatch(toggleSetting(settingName));
+      }
+    } catch (error) {
+      console.error('Error toggling setting:', error);
+    }
   };
 
   const handleThemeChange = (theme) => {
-    setSelectedTheme(theme);
-    if (theme === 'dark') {
-      setDarkMode();
-    } else {
-      setLightMode();
+    try {
+      setSelectedTheme(theme);
+      if (theme === 'dark') {
+        setDarkMode();
+      } else {
+        setLightMode();
+      }
+    } catch (error) {
+      console.error('Error changing theme:', error);
     }
   };
 
@@ -404,6 +420,7 @@ const styles = StyleSheet.create({
 });
 
 export default ThemeSettings;
+
 
 
 

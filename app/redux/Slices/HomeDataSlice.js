@@ -73,7 +73,9 @@ const homeSlice = createSlice({
         },
         toggleSetting: (state, action) => {
             const settingName = action.payload;
-            state.settings[settingName] = !state.settings[settingName];
+            if (state.settings && typeof state.settings === 'object' && settingName) {
+                state.settings[settingName] = !state.settings[settingName];
+            }
         },
 
      

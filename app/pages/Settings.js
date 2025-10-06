@@ -22,7 +22,7 @@ const Settings = ({ navigation }) => {
     smsNotifications: false
   };
   const dispatch = useDispatch();
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors, isDark, toggleTheme, theme } = useTheme();
   
   // Force re-render when screen comes into focus
   useFocusEffect(
@@ -33,7 +33,13 @@ const Settings = ({ navigation }) => {
   );
 
   const handleToggleSetting = (settingName) => {
-    dispatch(toggleSetting(settingName));
+    try {
+      if (settingName) {
+        dispatch(toggleSetting(settingName));
+      }
+    } catch (error) {
+      console.error('Error toggling setting:', error);
+    }
   };
 
   const handleProfileEdit = () => {
@@ -54,10 +60,6 @@ const Settings = ({ navigation }) => {
 
   const handleThemeSettings = () => {
     navigation.navigate('ThemeSettings');
-  };
-
-  const handleNotificationTest = () => {
-    navigation.navigate('NotificationTest');
   };
 
   const handleDataManagement = () => {
@@ -101,11 +103,11 @@ const Settings = ({ navigation }) => {
         <Switch
           value={switchValue}
           onValueChange={onSwitchChange}
-          trackColor={{ false: '#767577', true: '#47D6FF' }}
-          thumbColor={switchValue ? '#fff' : '#f4f3f4'}
+          trackColor={{ false: colors.border, true: colors.primary }}
+          thumbColor={switchValue ? colors.textInverse : colors.textSecondary}
         />
       ) : (
-        <Ionicons name="chevron-forward" size={20} color="#ccc" />
+        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
       )}
     </TouchableOpacity>
   );
@@ -116,7 +118,7 @@ const Settings = ({ navigation }) => {
       backgroundColor: colors.background,
     },
     header: {
-      backgroundColor: '#47D6FF',
+      backgroundColor: colors.primary,
       paddingTop: 50,
       paddingBottom: 20,
       flexDirection: 'row',
@@ -130,21 +132,23 @@ const Settings = ({ navigation }) => {
     headerTitle: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: '#fff',
+      color: colors.textInverse,
     },
     placeholder: {
       width: 34,
     },
     userSection: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.card,
       margin: 20,
       borderRadius: 12,
       padding: 20,
-      shadowColor: '#000',
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3,
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     userInfo: {
       alignItems: 'center',
@@ -152,12 +156,12 @@ const Settings = ({ navigation }) => {
     userName: {
       fontSize: 18,
       fontWeight: 'bold',
-      color: colors.text,
+      color: colors.textPrimary,
       marginBottom: 5,
     },
     userEmail: {
       fontSize: 14,
-      color: colors.icon,
+      color: colors.textSecondary,
     },
     section: {
       marginHorizontal: 20,
@@ -166,22 +170,24 @@ const Settings = ({ navigation }) => {
     sectionTitle: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: colors.text,
+      color: colors.textPrimary,
       marginBottom: 10,
       marginLeft: 5,
     },
     settingItem: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.card,
       flexDirection: 'row',
       alignItems: 'center',
       padding: 15,
       borderRadius: 8,
       marginBottom: 8,
-      shadowColor: '#000',
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.05,
       shadowRadius: 2,
       elevation: 2,
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     settingIcon: {
       marginRight: 15,
@@ -192,12 +198,12 @@ const Settings = ({ navigation }) => {
     settingTitle: {
       fontSize: 16,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.textPrimary,
       marginBottom: 2,
     },
     settingSubtitle: {
       fontSize: 12,
-      color: colors.icon,
+      color: colors.textSecondary,
     },
     bottomSpacing: {
       height: 30,
@@ -263,12 +269,6 @@ const Settings = ({ navigation }) => {
           subtitle="Customize appearance and themes"
           onPress={handleThemeSettings}
         />
-        <SettingItem
-          icon={<Ionicons name="flask-outline" size={24} color="#47D6FF" />}
-          title="Test Notifications"
-          subtitle="Test all notification types"
-          onPress={handleNotificationTest}
-        />
       </View>
 
       {/* Notification Settings */}
@@ -308,10 +308,13 @@ const Settings = ({ navigation }) => {
           title="Dark Mode"
           subtitle="Switch to dark theme"
           showSwitch={true}
-          switchValue={settings.darkMode}
+          switchValue={isDark}
           onSwitchChange={() => {
-            handleToggleSetting('darkMode');
-            toggleTheme();
+            try {
+              toggleTheme();
+            } catch (error) {
+              console.error('Error toggling dark mode:', error);
+            }
           }}
         />
         <SettingItem

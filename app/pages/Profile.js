@@ -5,6 +5,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { clearUser, refreshUser } from '../redux/Slices/HomeDataSlice';
 import UserProfile from '../../components/UserProfile';
 import { useCallback } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -12,6 +13,7 @@ const Profile = () => {
   const userFirstName = useSelector((state) => state.home.user?.firstName);
   const userLastName = useSelector((state) => state.home.user?.lastName);
   const navigation = useNavigation();
+  const { colors, isDark } = useTheme();
 
   // Force re-render when screen comes into focus
   useFocusEffect(
@@ -32,18 +34,18 @@ const Profile = () => {
 
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
 
       {/* Header */}
       <View style={{
-        backgroundColor: '#47D6FF',
+        backgroundColor: colors.primary,
         height: 180,
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <Text style={{ color: '#fff', fontSize: 22, fontWeight: 'bold', marginTop: 20 }}>
+        <Text style={{ color: colors.textInverse, fontSize: 22, fontWeight: 'bold', marginTop: 20 }}>
           HeavyRent
         </Text>
         <UserProfile 
@@ -52,10 +54,10 @@ const Profile = () => {
           showName={true}
           imageStyle={{
             marginTop: 15,
-            borderColor: '#fff'
+            borderColor: colors.textInverse
           }}
           textStyle={{
-            color: '#fff',
+            color: colors.textInverse,
             fontSize: 16,
             fontWeight: '600',
             marginTop: 10
@@ -76,10 +78,10 @@ const Profile = () => {
             alignItems: 'center',
             paddingVertical: 15,
             borderBottomWidth: 1,
-            borderBottomColor: '#eee'
+            borderBottomColor: colors.border
           }}>
-          <Ionicons name="person-outline" size={22} color="#47D6FF" />
-          <Text style={{ marginLeft: 15, fontSize: 16 }}>My profile</Text>
+          <Ionicons name="person-outline" size={22} color={colors.primary} />
+          <Text style={{ marginLeft: 15, fontSize: 16, color: colors.textPrimary }}>My profile</Text>
         </TouchableOpacity>
 
         {/* My Ads */}
@@ -90,10 +92,10 @@ const Profile = () => {
             alignItems: 'center',
             paddingVertical: 15,
             borderBottomWidth: 1,
-            borderBottomColor: '#eee'
+            borderBottomColor: colors.border
           }}>
-          <Ionicons name="document-text-outline" size={22} color="#47D6FF" />
-          <Text style={{ marginLeft: 15, fontSize: 16 }}>My Ads</Text>
+          <Ionicons name="document-text-outline" size={22} color={colors.primary} />
+          <Text style={{ marginLeft: 15, fontSize: 16, color: colors.textPrimary }}>My Ads</Text>
         </TouchableOpacity>
 
         {/* Settings */}
@@ -104,10 +106,10 @@ const Profile = () => {
             alignItems: 'center',
             paddingVertical: 15,
             borderBottomWidth: 1,
-            borderBottomColor: '#eee'
+            borderBottomColor: colors.border
           }}>
-          <Feather name="settings" size={22} color="#47D6FF" />
-          <Text style={{ marginLeft: 15, fontSize: 16 }}>Settings</Text>
+          <Feather name="settings" size={22} color={colors.primary} />
+          <Text style={{ marginLeft: 15, fontSize: 16, color: colors.textPrimary }}>Settings</Text>
         </TouchableOpacity>
 
         {/* Notifications */}
@@ -120,10 +122,10 @@ const Profile = () => {
             alignItems: 'center',
             paddingVertical: 15,
             borderBottomWidth: 1,
-            borderBottomColor: '#eee'
+            borderBottomColor: colors.border
           }}>
-          <Ionicons name="notifications-outline" size={22} color="#47D6FF" />
-          <Text style={{ marginLeft: 15, fontSize: 16 }}>Notification</Text>
+          <Ionicons name="notifications-outline" size={22} color={colors.primary} />
+          <Text style={{ marginLeft: 15, fontSize: 16, color: colors.textPrimary }}>Notification</Text>
         </TouchableOpacity>
 
         {/* Logout */}
@@ -134,8 +136,8 @@ const Profile = () => {
             alignItems: 'center',
             paddingVertical: 15
           }}>
-          <MaterialIcons name="logout" size={22} color="#47D6FF" />
-          <Text style={{ marginLeft: 15, fontSize: 16 }}>Log out</Text>
+          <MaterialIcons name="logout" size={22} color={colors.primary} />
+          <Text style={{ marginLeft: 15, fontSize: 16, color: colors.textPrimary }}>Log out</Text>
         </TouchableOpacity>
 
       </View>
