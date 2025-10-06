@@ -3,6 +3,13 @@ import notificationService from './NotificationService';
 class AppNotificationManager {
   constructor() {
     this.isInitialized = false;
+    
+    // Initialize with error handling
+    try {
+      console.log('AppNotificationManager initialized');
+    } catch (error) {
+      console.log('Error initializing AppNotificationManager:', error.message);
+    }
   }
 
   // Initialize notifications when app starts
@@ -19,35 +26,52 @@ class AppNotificationManager {
         console.log('Push notification token obtained:', token);
         // Here you would typically send the token to your backend server
         // await sendTokenToServer(token);
+      } else {
+        console.log('Push notification token not available, using local notifications only');
       }
 
       // Set up notification listeners
-      notificationService.setupNotificationListeners();
+      try {
+        notificationService.setupNotificationListeners();
+      } catch (listenerError) {
+        console.log('Notification listeners setup failed:', listenerError.message);
+        // Continue without listeners
+      }
       
       this.isInitialized = true;
       console.log('Notification system initialized successfully');
       
     } catch (error) {
       console.error('Failed to initialize notification system:', error);
+      // Continue with local notifications even if push notifications fail
+      this.isInitialized = true;
     }
   }
 
   // Send welcome notification
   async sendWelcomeNotification(userName) {
-    await notificationService.sendLocalNotification(
-      'Welcome to HeavyRent! 🎉',
-      `Hi ${userName}! Start by posting your first ad or browsing available equipment.`,
-      { type: 'welcome', userName }
-    );
+    try {
+      await notificationService.sendLocalNotification(
+        'Welcome to HeavyRent! 🎉',
+        `Hi ${userName}! Start by posting your first ad or browsing available equipment.`,
+        { type: 'welcome', userName }
+      );
+    } catch (error) {
+      console.log('Error sending welcome notification:', error.message);
+    }
   }
 
   // Send daily reminder notification
   async sendDailyReminder() {
-    await notificationService.sendLocalNotification(
-      'Daily Reminder 📅',
-      'Check out new equipment listings and manage your ads!',
-      { type: 'daily_reminder' }
-    );
+    try {
+      await notificationService.sendLocalNotification(
+        'Daily Reminder 📅',
+        'Check out new equipment listings and manage your ads!',
+        { type: 'daily_reminder' }
+      );
+    } catch (error) {
+      console.log('Error sending daily reminder:', error.message);
+    }
   }
 
   // Send maintenance reminder
@@ -205,13 +229,46 @@ class AppNotificationManager {
 
   // Clean up
   cleanup() {
-    notificationService.cleanup();
-    this.isInitialized = false;
+    try {
+      notificationService.cleanup();
+      this.isInitialized = false;
+    } catch (error) {
+      console.log('Error cleaning up app notification manager:', error.message);
+    }
   }
 }
 
 // Create singleton instance
-const appNotificationManager = new AppNotificationManager();
+let appNotificationManager;
+try {
+  appNotificationManager = new AppNotificationManager();
+} catch (error) {
+  console.log('Error creating app notification manager:', error.message);
+  // Create a fallback manager
+  appNotificationManager = {
+    initialize: async () => {},
+    sendWelcomeNotification: async () => {},
+    sendDailyReminder: async () => {},
+    sendMaintenanceReminder: async () => {},
+    sendWeatherAlert: async () => {},
+    sendPromotionalNotification: async () => {},
+    sendSecurityAlert: async () => {},
+    sendAppUpdateNotification: async () => {},
+    sendRentalReminder: async () => {},
+    sendPaymentReminder: async () => {},
+    sendFeedbackRequest: async () => {},
+    sendFeatureAnnouncement: async () => {},
+    sendMarketplaceUpdate: async () => {},
+    sendCommunityUpdate: async () => {},
+    sendEmergencyAlert: async () => {},
+    sendSystemMaintenanceNotification: async () => {},
+    sendHolidayGreeting: async () => {},
+    sendAchievementNotification: async () => {},
+    sendReferralNotification: async () => {},
+    sendSeasonalPromotion: async () => {},
+    cleanup: () => {}
+  };
+}
 
 export default appNotificationManager;
 

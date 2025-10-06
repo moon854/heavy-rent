@@ -4,58 +4,99 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 // Configure notification behavior
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+} catch (error) {
+  console.log('Error setting notification handler:', error.message);
+}
 
 class NotificationService {
   constructor() {
     this.expoPushToken = null;
     this.notificationListener = null;
     this.responseListener = null;
+    
+    // Initialize with error handling
+    try {
+      console.log('NotificationService initialized');
+    } catch (error) {
+      console.log('Error initializing NotificationService:', error.message);
+    }
   }
 
   // Register for push notifications
   async registerForPushNotificationsAsync() {
     let token;
 
+    // Check if running in Expo Go
+    const isExpoGo = Constants.appOwnership === 'expo';
+    
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#47D6FF',
-      });
+      try {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#47D6FF',
+        });
+      } catch (error) {
+        console.log('Android notification channel setup failed:', error.message);
+      }
     }
 
     if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      
-      if (finalStatus !== 'granted') {
-        console.log('Failed to get push token for push notification!');
-        return null;
-      }
-      
       try {
-        const projectId = Constants.expoConfig?.extra?.eas?.projectId || 'heavyrent-app-2024';
-        token = (await Notifications.getExpoPushTokenAsync({
-          projectId: projectId,
-        })).data;
-        console.log('Expo push token:', token);
-        this.expoPushToken = token;
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        
+        if (finalStatus !== 'granted') {
+          console.log('Failed to get push token for push notification!');
+          return null;
+        }
+        
+        // Skip push token generation in Expo Go to avoid errors
+        if (isExpoGo) {
+          console.log('Push notifications disabled in Expo Go - using local notifications only');
+          console.log('For push notifications, use a development build instead of Expo Go');
+          return null;
+        }
+        
+        // Only try to get push token in development builds
+        try {
+          const projectId = Constants.expoConfig?.projectId || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+          console.log('Using projectId:', projectId);
+          
+          token = (await Notifications.getExpoPushTokenAsync({
+            projectId: projectId,
+          })).data;
+          console.log('Expo push token:', token);
+          this.expoPushToken = token;
+        } catch (error) {
+          console.error('Error getting push token:', error);
+          console.log('Push notifications will work locally but may not work for remote notifications without proper EAS setup');
+          
+          try {
+            token = (await Notifications.getExpoPushTokenAsync()).data;
+            console.log('Expo push token (fallback):', token);
+            this.expoPushToken = token;
+          } catch (fallbackError) {
+            console.error('Fallback push token error:', fallbackError);
+            return null;
+          }
+        }
       } catch (error) {
-        console.error('Error getting push token:', error);
-        console.log('Push notifications will work locally but may not work for remote notifications without proper EAS setup');
+        console.error('Error in notification setup:', error);
         return null;
       }
     } else {
@@ -79,7 +120,8 @@ class NotificationService {
       });
       console.log('Local notification sent:', title);
     } catch (error) {
-      console.error('Error sending local notification:', error);
+      console.log('Error sending local notification:', error.message);
+      // Continue without throwing error
     }
   }
 
@@ -193,76 +235,108 @@ class NotificationService {
 
   // Set up notification listeners
   setupNotificationListeners() {
-    // Listener for notifications received while app is foregrounded
-    this.notificationListener = Notifications.addNotificationReceivedListener(notification => {
-      console.log('Notification received:', notification);
-      // Handle notification received while app is open
-    });
+    try {
+      // Listener for notifications received while app is foregrounded
+      this.notificationListener = Notifications.addNotificationReceivedListener(notification => {
+        console.log('Notification received:', notification);
+        // Handle notification received while app is open
+      });
 
-    // Listener for user interactions with notifications
-    this.responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log('Notification response:', response);
-      const data = response.notification.request.content.data;
-      
-      // Handle different notification types
-      switch (data.type) {
-        case 'ad_posted':
-          // Navigate to My Ads page
-          break;
-        case 'ad_viewed':
-          // Navigate to ad details
-          break;
-        case 'new_message':
-          // Navigate to chat
-          break;
-        case 'rental_request':
-          // Navigate to rental requests
-          break;
-        case 'payment_received':
-          // Navigate to payment history
-          break;
-        default:
-          // Navigate to home
-          break;
-      }
-    });
+      // Listener for user interactions with notifications
+      this.responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+        console.log('Notification response:', response);
+        const data = response.notification.request.content.data;
+        
+        // Handle different notification types
+        switch (data.type) {
+          case 'ad_posted':
+            // Navigate to My Ads page
+            break;
+          case 'ad_viewed':
+            // Navigate to ad details
+            break;
+          case 'new_message':
+            // Navigate to chat
+            break;
+          case 'rental_request':
+            // Navigate to rental requests
+            break;
+          case 'payment_received':
+            // Navigate to payment history
+            break;
+          default:
+            // Navigate to home
+            break;
+        }
+      });
+    } catch (error) {
+      console.log('Notification listeners setup failed:', error.message);
+      // Continue without listeners
+    }
   }
 
   // Clean up listeners
   cleanup() {
-    if (this.notificationListener) {
-      Notifications.removeNotificationSubscription(this.notificationListener);
-    }
-    if (this.responseListener) {
-      Notifications.removeNotificationSubscription(this.responseListener);
+    try {
+      if (this.notificationListener) {
+        Notifications.removeNotificationSubscription(this.notificationListener);
+      }
+      if (this.responseListener) {
+        Notifications.removeNotificationSubscription(this.responseListener);
+      }
+    } catch (error) {
+      console.log('Error cleaning up notification listeners:', error.message);
     }
   }
 
   // Get notification permissions status
   async getNotificationPermissions() {
-    const { status } = await Notifications.getPermissionsAsync();
-    return status;
+    try {
+      const { status } = await Notifications.getPermissionsAsync();
+      return status;
+    } catch (error) {
+      console.log('Error getting notification permissions:', error.message);
+      return 'denied';
+    }
   }
 
   // Request notification permissions
   async requestNotificationPermissions() {
-    const { status } = await Notifications.requestPermissionsAsync();
-    return status;
+    try {
+      const { status } = await Notifications.requestPermissionsAsync();
+      return status;
+    } catch (error) {
+      console.log('Error requesting notification permissions:', error.message);
+      return 'denied';
+    }
   }
 
   // Cancel all notifications
   async cancelAllNotifications() {
-    await Notifications.cancelAllScheduledNotificationsAsync();
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+    } catch (error) {
+      console.log('Error canceling all notifications:', error.message);
+    }
   }
 
   // Cancel specific notification
   async cancelNotification(notificationId) {
-    await Notifications.cancelScheduledNotificationAsync(notificationId);
+    try {
+      await Notifications.cancelScheduledNotificationAsync(notificationId);
+    } catch (error) {
+      console.log('Error canceling notification:', error.message);
+    }
   }
 
   // Get scheduled notifications
   async getScheduledNotifications() {
-    return await Notifications.getAllScheduledNotificationsAsync();
+    try {
+      return await Notifications.getAllScheduledNotificationsAsync();
+    } catch (error) {
+      console.log('Error getting scheduled notifications:', error.message);
+      return [];
+    }
   }
 
   // Send scheduled notification
@@ -280,13 +354,31 @@ class NotificationService {
       console.log('Scheduled notification:', notificationId);
       return notificationId;
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      console.log('Error scheduling notification:', error.message);
       return null;
     }
   }
 }
 
 // Create singleton instance
-const notificationService = new NotificationService();
+let notificationService;
+try {
+  notificationService = new NotificationService();
+} catch (error) {
+  console.log('Error creating notification service:', error.message);
+  // Create a fallback service
+  notificationService = {
+    registerForPushNotificationsAsync: async () => null,
+    sendLocalNotification: async () => {},
+    setupNotificationListeners: () => {},
+    cleanup: () => {},
+    getNotificationPermissions: async () => 'denied',
+    requestNotificationPermissions: async () => 'denied',
+    cancelAllNotifications: async () => {},
+    cancelNotification: async () => {},
+    getScheduledNotifications: async () => [],
+    sendScheduledNotification: async () => null
+  };
+}
 
 export default notificationService;

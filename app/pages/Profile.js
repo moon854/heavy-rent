@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { clearUser, refreshUser } from '../redux/Slices/HomeDataSlice';
 import UserProfile from '../../components/UserProfile';
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
+import UserNotificationService from '../services/UserNotificationService';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -14,6 +15,23 @@ const Profile = () => {
   const userLastName = useSelector((state) => state.home.user?.lastName);
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch unread notification count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (user?.uid || user?.id) {
+        try {
+          const count = await UserNotificationService.getUnreadCount(user.uid || user.id);
+          setUnreadCount(count);
+        } catch (error) {
+          console.error('Error fetching unread count:', error);
+        }
+      }
+    };
+
+    fetchUnreadCount();
+  }, [user]);
 
   // Force re-render when screen comes into focus
   useFocusEffect(
@@ -114,9 +132,7 @@ const Profile = () => {
 
         {/* Notifications */}
         <TouchableOpacity 
-          onPress={() => {
-            alert('Notification settings will be implemented soon!');
-          }}
+          onPress={() => navigation.navigate('Notifications')}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -125,7 +141,27 @@ const Profile = () => {
             borderBottomColor: colors.border
           }}>
           <Ionicons name="notifications-outline" size={22} color={colors.primary} />
-          <Text style={{ marginLeft: 15, fontSize: 16, color: colors.textPrimary }}>Notification</Text>
+          <Text style={{ marginLeft: 15, fontSize: 16, color: colors.textPrimary }}>Notifications</Text>
+          {unreadCount > 0 && (
+            <View style={{
+              backgroundColor: colors.error || '#F44336',
+              borderRadius: 10,
+              minWidth: 20,
+              height: 20,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginLeft: 'auto',
+              marginRight: 10
+            }}>
+              <Text style={{
+                color: 'white',
+                fontSize: 12,
+                fontWeight: 'bold'
+              }}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         {/* Logout */}

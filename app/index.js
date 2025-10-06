@@ -4,11 +4,14 @@ import React from 'react';
 
 import AdForm from './pages/AdForm';
 import ChangePassword from './pages/ChangePassword';
+import Chat from './pages/Chat';
+import ChatList from './pages/ChatList';
 import Excavators from './pages/Excavators';
 import MachineryDetails from './pages/MachineryDetails';
 import MyAds from './pages/MyAds';
 import NotificationSettings from './pages/NotificationSettings';
 import NotificationTest from './pages/NotificationTest';
+import Notifications from './pages/Notifications';
 import Payment from './pages/Payment';
 import ProfileEdit from './pages/ProfileEdit';
 import PrivacySettings from './pages/PrivacySettings';
@@ -51,6 +54,8 @@ function RenderStack() {
       <Stack.Screen name="BottomTab" component={BottomTab} />
       <Stack.Screen name="Excavators" component={Excavators} />
       <Stack.Screen name="MachineryDetails" component={MachineryDetails} />
+      <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="ChatList" component={ChatList} />
       <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
       <Stack.Screen name="ChangePassword" component={ChangePassword} />
       <Stack.Screen name="RenterForm" component={RenterForm} />
@@ -60,6 +65,7 @@ function RenderStack() {
         <Stack.Screen name="AdForm" component={AdForm} />
         <Stack.Screen name="MyAds" component={MyAds} />
         <Stack.Screen name="Settings" component={Settings} />
+        <Stack.Screen name="Notifications" component={Notifications} />
         <Stack.Screen name="PrivacySettings" component={PrivacySettings} />
         <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
         <Stack.Screen name="NotificationTest" component={NotificationTest} />

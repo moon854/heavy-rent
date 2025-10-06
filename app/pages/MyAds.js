@@ -197,6 +197,26 @@ const MyAds = ({ navigation }) => {
                       <Text style={{ fontSize: 14, color: '#666', marginBottom: 3 }}>
                         Price: Rs {ad.rentPerDay || ad.price || '0'} / day
                       </Text>
+                      {/* Status Indicator */}
+                      <View style={{ 
+                        alignSelf: 'flex-start',
+                        backgroundColor: ad.status === 'approved' ? '#4CAF50' : 
+                                        ad.status === 'rejected' ? '#F44336' : '#FF9800',
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 12,
+                        marginBottom: 3
+                      }}>
+                        <Text style={{ 
+                          fontSize: 12, 
+                          color: '#fff', 
+                          fontWeight: '600',
+                          textTransform: 'uppercase'
+                        }}>
+                          {ad.status === 'approved' ? '✅ Live' : 
+                           ad.status === 'rejected' ? '❌ Rejected' : '⏳ Under Review'}
+                        </Text>
+                      </View>
                       {ad.location && (
                         <Text style={{ fontSize: 12, color: '#999' }}>
                           📍 {ad.location}
@@ -222,45 +242,156 @@ const MyAds = ({ navigation }) => {
                   borderTopWidth: 1,
                   borderTopColor: '#f0f0f0'
                 }}>
-                  <TouchableOpacity 
-                    onPress={() => handleEditAd(ad)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: '#47D6FF',
-                      paddingHorizontal: 20,
-                      paddingVertical: 8,
-                      borderRadius: 20,
-                      flex: 1,
-                      marginRight: 10,
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Ionicons name="create-outline" size={16} color="#fff" />
-                    <Text style={{ color: '#fff', marginLeft: 5, fontSize: 14, fontWeight: '600' }}>
-                      Edit
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    onPress={() => handleDeleteAd(ad)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: '#ff4444',
-                      paddingHorizontal: 20,
-                      paddingVertical: 8,
-                      borderRadius: 20,
-                      flex: 1,
-                      marginLeft: 10,
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Ionicons name="trash-outline" size={16} color="#fff" />
-                    <Text style={{ color: '#fff', marginLeft: 5, fontSize: 14, fontWeight: '600' }}>
-                      Delete
-                    </Text>
-                  </TouchableOpacity>
+                  {ad.status === 'pending' ? (
+                    // Show only Edit and Delete for pending ads
+                    <>
+                      <TouchableOpacity 
+                        onPress={() => handleEditAd(ad)}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#47D6FF',
+                          paddingHorizontal: 20,
+                          paddingVertical: 8,
+                          borderRadius: 20,
+                          flex: 1,
+                          marginRight: 10,
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Ionicons name="create-outline" size={16} color="#fff" />
+                        <Text style={{ color: '#fff', marginLeft: 5, fontSize: 14, fontWeight: '600' }}>
+                          Edit
+                        </Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity 
+                        onPress={() => handleDeleteAd(ad)}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#F44336',
+                          paddingHorizontal: 20,
+                          paddingVertical: 8,
+                          borderRadius: 20,
+                          flex: 1,
+                          marginLeft: 10,
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Ionicons name="trash-outline" size={16} color="#fff" />
+                        <Text style={{ color: '#fff', marginLeft: 5, fontSize: 14, fontWeight: '600' }}>
+                          Delete
+                        </Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : ad.status === 'approved' ? (
+                    // Show View Live, Edit and Delete for approved ads
+                    <>
+                      <TouchableOpacity 
+                        onPress={() => goToMachineryDetails(ad)}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#4CAF50',
+                          paddingHorizontal: 15,
+                          paddingVertical: 8,
+                          borderRadius: 20,
+                          flex: 1,
+                          marginRight: 5,
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Ionicons name="eye-outline" size={16} color="#fff" />
+                        <Text style={{ color: '#fff', marginLeft: 5, fontSize: 12, fontWeight: '600' }}>
+                          View Live
+                        </Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity 
+                        onPress={() => handleEditAd(ad)}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#47D6FF',
+                          paddingHorizontal: 15,
+                          paddingVertical: 8,
+                          borderRadius: 20,
+                          flex: 1,
+                          marginHorizontal: 5,
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Ionicons name="create-outline" size={16} color="#fff" />
+                        <Text style={{ color: '#fff', marginLeft: 5, fontSize: 12, fontWeight: '600' }}>
+                          Edit Ad
+                        </Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity 
+                        onPress={() => handleDeleteAd(ad)}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#F44336',
+                          paddingHorizontal: 15,
+                          paddingVertical: 8,
+                          borderRadius: 20,
+                          flex: 1,
+                          marginLeft: 5,
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Ionicons name="trash-outline" size={16} color="#fff" />
+                        <Text style={{ color: '#fff', marginLeft: 5, fontSize: 12, fontWeight: '600' }}>
+                          Delete
+                        </Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    // Show Edit and Delete for rejected ads
+                    <>
+                      <TouchableOpacity 
+                        onPress={() => handleEditAd(ad)}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#47D6FF',
+                          paddingHorizontal: 20,
+                          paddingVertical: 8,
+                          borderRadius: 20,
+                          flex: 1,
+                          marginRight: 10,
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Ionicons name="create-outline" size={16} color="#fff" />
+                        <Text style={{ color: '#fff', marginLeft: 5, fontSize: 14, fontWeight: '600' }}>
+                          Edit & Resubmit
+                        </Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity 
+                        onPress={() => handleDeleteAd(ad)}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#F44336',
+                          paddingHorizontal: 20,
+                          paddingVertical: 8,
+                          borderRadius: 20,
+                          flex: 1,
+                          marginLeft: 10,
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Ionicons name="trash-outline" size={16} color="#fff" />
+                        <Text style={{ color: '#fff', marginLeft: 5, fontSize: 14, fontWeight: '600' }}>
+                          Delete
+                        </Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
                 </View>
               </View>
             ))}

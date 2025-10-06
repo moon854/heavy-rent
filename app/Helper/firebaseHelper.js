@@ -95,8 +95,8 @@ export const getMachineryByCategory = async (categoryId) => {
                 data.category?.toLowerCase() === categoryId?.toLowerCase() ||
                 data.categoryName?.toLowerCase() === categoryId?.toLowerCase();
                 
-            if (matchesCategory) {
-                console.log('✅ Adding machinery to results:', data.name);
+            if (matchesCategory && data.status === 'approved') {
+                console.log('✅ Adding approved machinery to results:', data.name);
                 machinery.push(data);
             }
         });

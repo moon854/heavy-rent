@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { getAllCategories, addData, updateData } from '../Helper/firebaseHelper';
 import { uploadImageToCloudinary } from '../Helper/firebaseHelper';
+import { notifyAdminNewAd } from '../Helper/adminNotifications';
 import { useSelector } from 'react-redux';
 import notificationService from '../services/NotificationService';
 
@@ -34,6 +35,7 @@ const AdForm = ({ navigation, route }) => {
   });
 
   const user = useSelector((state) => state?.home?.user) || {};
+  const settings = useSelector((state) => state?.home?.settings) || {};
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -252,7 +254,8 @@ const AdForm = ({ navigation, route }) => {
           formData.rentalPolicy4 || 'None'
         ],
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        status: 'pending'
       };
 
       console.log('Prepared machinery data:', machineryData);
@@ -284,7 +287,10 @@ const AdForm = ({ navigation, route }) => {
         const docId = await addData('machinery', machineryData);
         console.log('Successfully saved to Firebase with ID:', docId);
         
-        Alert.alert('Success', `Ad posted successfully! (ID: ${docId})`, [
+        // Notify admin about new ad
+        await notifyAdminNewAd({ ...machineryData, id: docId }, user.uid || user.id);
+        
+        Alert.alert('Ad Posted Successfully! 📝', `Your ad "${formData.vehicleName}" has been posted and is now under review by our admin team. You will be notified once it's approved.`, [
           { text: 'OK', onPress: () => {
             // Send notification if enabled
             if (settings.adPostedNotification !== false) {
