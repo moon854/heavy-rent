@@ -2,7 +2,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useState } from 'react';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { handleSignUp, uploadImageToCloudinary } from '../Helper/firebaseHelper';
 import { setUser } from '../redux/Slices/HomeDataSlice';
@@ -24,30 +24,44 @@ const Register = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const [imageUrl, setImageUrl] = useState("")
+  const [acceptTerms, setAcceptTerms] = useState(false)
+  const [cnic, setCnic] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
 
 
   const goToRigester = async () => {
 
-    if (firstName === ""  || email === "" || password === "" || confirmPassword === "" || imageUrl === "") {
+    if (firstName === ""  || email === "" || password === "" || confirmPassword === "" || imageUrl === "" || cnic === "") {
       alert("Please fill all the fields")
       return
     }
 
-    const user = await handleSignUp(
-      email,
-      password,
-      { role: "user", firstName, lastName, email, phone, password, imageUrl }
-    )
-
-    if (user?.uid) {
-      dispatch(setUser(user))
-      alert("Account created successfully!")
-    } else {
-      alert("Error in sign up")
+    if (!acceptTerms) {
+      alert("Please accept the terms and privacy policy to continue")
+      return
     }
 
+    setIsLoading(true)
 
+    try {
+      const user = await handleSignUp(
+        email,
+        password,
+        { role: "user", firstName, lastName, email, phone, password, imageUrl, cnic }
+      )
+
+      if (user?.uid) {
+        dispatch(setUser(user))
+        alert("Account created successfully!")
+      } else {
+        alert("Error in sign up")
+      }
+    } catch (error) {
+      alert("Error in sign up")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
 
@@ -112,6 +126,7 @@ const Register = ({ navigation }) => {
 
         <TextInput onChangeText={(e) => setFirstName(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Enter Your Name " />
         <TextInput onChangeText={(e) => setEmail(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Your Email" />
+        <TextInput onChangeText={(e) => setCnic(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="CNIC (12345-1234567-1)" />
         <TextInput onChangeText={(e) => setPassword(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Password" />
         <TextInput onChangeText={(e) => setConfirmPassword(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Confirm Password" />
 
@@ -119,22 +134,44 @@ const Register = ({ navigation }) => {
 
 
 
-        <View>
-          <Text style={{ fontSize: 12, color: 'black', textAlign: 'center', paddingTop: 20 }}>I accept the terms and privacy policy</Text>
-        </View>
-        <AntDesign
-          name="checkcircle"
-          size={18}
-          color="#47D6FF"
-          style={{ marginLeft: 60, marginTop: -16 }}
-        />
-
-        <TouchableOpacity onPress={goToRigester} style={{ width: "50%", height: 50, backgroundColor: "#47D6FF", alignSelf: 'center', borderRadius: 10, marginTop: 40 }}>
-
-
-          <Text style={{ fontSize: 20, color: 'white', textAlign: 'center', paddingTop: 10 }}>
-            Register
+        <TouchableOpacity 
+          onPress={() => setAcceptTerms(!acceptTerms)}
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 20 }}
+        >
+          <AntDesign
+            name={acceptTerms ? "checkcircle" : "checkcircleo"}
+            size={18}
+            color={acceptTerms ? "#47D6FF" : "#ccc"}
+            style={{ marginRight: 8 }}
+          />
+          <Text style={{ fontSize: 12, color: 'black', textAlign: 'center' }}>
+            I accept the terms and privacy policy
           </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          onPress={goToRigester} 
+          disabled={isLoading}
+          style={{ 
+            width: "50%", 
+            height: 50, 
+            backgroundColor: acceptTerms && !isLoading ? "#47D6FF" : "#ccc", 
+            alignSelf: 'center', 
+            borderRadius: 10, 
+            marginTop: 40,
+            opacity: acceptTerms ? 1 : 0.6,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text style={{ fontSize: 20, color: 'white', textAlign: 'center' }}>
+              Register
+            </Text>
+          )}
         </TouchableOpacity>
 
       </View>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { LoginWithFBase, getDataById } from '../Helper/firebaseHelper';
 import { setUser } from '../redux/Slices/HomeDataSlice';
@@ -9,26 +9,33 @@ const Login = ({ navigation }) => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
     const handleLoginWithEmail = async () => {
-  
-      const authUser = await LoginWithFBase(
-        email,
-        password,
-      )
-  
-      if (authUser?.uid) {
-        // Fetch complete user data from Firestore
-        const userData = await getDataById("users", authUser.uid);
-        if (userData) {
-          dispatch(setUser(userData));
-          alert("Login successful!");
+      setIsLoading(true)
+      
+      try {
+        const authUser = await LoginWithFBase(
+          email,
+          password,
+        )
+    
+        if (authUser?.uid) {
+          // Fetch complete user data from Firestore
+          const userData = await getDataById("users", authUser.uid);
+          if (userData) {
+            dispatch(setUser(userData));
+            alert("Login successful!");
+          } else {
+            alert("User data not found");
+          }
         } else {
-          alert("User data not found");
+          alert("Error in login")
         }
-      } else {
+      } catch (error) {
         alert("Error in login")
+      } finally {
+        setIsLoading(false)
       }
-  
     }
   
 
@@ -40,10 +47,28 @@ const Login = ({ navigation }) => {
       <TextInput onChangeText={setEmail} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Username" />
       <TextInput onChangeText={setPassword} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Password" />
       <Text style={{ color: "#47D6FF", paddingLeft: 40, marginTop: 20 }}> Forgot Your Password?</Text>
-      <TouchableOpacity onPress={handleLoginWithEmail} style={{ width: "50%", height: 50, backgroundColor: "#47D6FF", alignSelf: 'center', borderRadius: 10, marginTop: 50 }}>
-        <Text style={{ fontSize: 20, color: 'white', textAlign: 'center', paddingTop: 7 }}>
-          Login
-        </Text>
+      <TouchableOpacity 
+        onPress={handleLoginWithEmail} 
+        disabled={isLoading}
+        style={{ 
+          width: "50%", 
+          height: 50, 
+          backgroundColor: isLoading ? "#ccc" : "#47D6FF", 
+          alignSelf: 'center', 
+          borderRadius: 10, 
+          marginTop: 50,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color="white" />
+        ) : (
+          <Text style={{ fontSize: 20, color: 'white', textAlign: 'center' }}>
+            Login
+          </Text>
+        )}
       </TouchableOpacity>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View>

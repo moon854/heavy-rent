@@ -26,6 +26,7 @@ const ProfileEdit = () => {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [cnic, setCnic] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
@@ -36,6 +37,7 @@ const ProfileEdit = () => {
       setLastName(user.lastName || '');
       setEmail(user.email || '');
       setPhone(user.phone || '');
+      setCnic(user.cnic || '');
       setImageUrl(user.imageUrl || '');
     }
   }, [user]);
@@ -83,6 +85,7 @@ const ProfileEdit = () => {
         lastName: lastName.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        cnic: cnic.trim(),
         imageUrl: imageUrl,
         updatedAt: new Date().toISOString(),
       };
@@ -198,6 +201,18 @@ const ProfileEdit = () => {
             placeholder="Enter your phone number"
             placeholderTextColor="#999"
             keyboardType="phone-pad"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>CNIC</Text>
+          <TextInput
+            style={styles.input}
+            value={cnic}
+            onChangeText={setCnic}
+            placeholder="Enter your CNIC (12345-1234567-1)"
+            placeholderTextColor="#999"
+            keyboardType="numeric"
           />
         </View>
       </View>
