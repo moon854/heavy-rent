@@ -117,7 +117,7 @@ const Home = ({ navigation }) => {
             textShadowColor: colors.primary + '30',
             textShadowOffset: { width: 0, height: 2 },
             textShadowRadius: 4
-          }}>HeavyRent</Text>
+          }}>Rent-To-Build</Text>
         </View>
         <UserProfile 
           size="medium" 

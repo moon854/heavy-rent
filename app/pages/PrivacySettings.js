@@ -71,7 +71,7 @@ const PrivacySettings = ({ navigation }) => {
   const handleTermsOfService = () => {
     Alert.alert(
       'Terms of Service',
-      'Our Terms of Service outline the rules and regulations for using HeavyRent. You can view the full terms at: https://heavyrent.com/terms',
+      'Our Terms of Service outline the rules and regulations for using Rent-To-Build. You can view the full terms at: https://heavyrent.com/terms',
       [{ text: 'OK' }]
     );
   };

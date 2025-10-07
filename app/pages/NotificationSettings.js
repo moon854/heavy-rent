@@ -45,7 +45,7 @@ const NotificationSettings = ({ navigation }) => {
 
     await notificationService.sendLocalNotification(
       'Test Notification 🧪',
-      'This is a test notification from HeavyRent!',
+      'This is a test notification from Rent-To-Build!',
       { type: 'test' }
     );
   };

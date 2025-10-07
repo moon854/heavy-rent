@@ -18,6 +18,7 @@ import PrivacySettings from './pages/PrivacySettings';
 import RentalEstimation from './pages/RentalEstimation';
 import RenterForm from './pages/RenterForm';
 import Settings from './pages/Settings';
+import SplashScreen from './pages/SplashScreen';
 import Success from './pages/Success';
 import ThemeSettings from './pages/ThemeSettings';
 import BottomTab from './Tabs/Bottomtab';
@@ -40,9 +41,7 @@ function RenderStack() {
 
   if (!user?.uid ) {
     return (
-
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
       </Stack.Navigator>
@@ -50,7 +49,8 @@ function RenderStack() {
   }
 
   return (
-    <Stack.Navigator initialRouteName="BottomTab" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="SplashScreen" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="BottomTab" component={BottomTab} />
       <Stack.Screen name="Excavators" component={Excavators} />
       <Stack.Screen name="MachineryDetails" component={MachineryDetails} />

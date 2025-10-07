@@ -72,8 +72,8 @@ const Settings = ({ navigation }) => {
 
   const handleAbout = () => {
     Alert.alert(
-      'About HeavyRent',
-      'HeavyRent v1.0.0\n\nA platform for renting heavy machinery and construction equipment.\n\n© 2024 HeavyRent. All rights reserved.',
+      'About Rent-To-Build',
+      'Rent-To-Build v1.0.0\n\nA platform for renting heavy machinery and construction equipment.\n\n© 2024 Rent-To-Build. All rights reserved.',
       [{ text: 'OK' }]
     );
   };

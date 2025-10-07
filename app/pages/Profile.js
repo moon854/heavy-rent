@@ -64,7 +64,7 @@ const Profile = () => {
         justifyContent: 'center'
       }}>
         <Text style={{ color: colors.textInverse, fontSize: 22, fontWeight: 'bold', marginTop: 20 }}>
-          HeavyRent
+          Rent-To-Build
         </Text>
         <UserProfile 
           key={`${user?.firstName}-${user?.lastName}-${user?.imageUrl}`}

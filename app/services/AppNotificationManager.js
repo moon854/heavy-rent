@@ -52,7 +52,7 @@ class AppNotificationManager {
   async sendWelcomeNotification(userName) {
     try {
       await notificationService.sendLocalNotification(
-        'Welcome to HeavyRent! 🎉',
+        'Welcome to Rent-To-Build! 🎉',
         `Hi ${userName}! Start by posting your first ad or browsing available equipment.`,
         { type: 'welcome', userName }
       );
@@ -195,7 +195,7 @@ class AppNotificationManager {
   async sendHolidayGreeting(holidayName) {
     await notificationService.sendLocalNotification(
       `Happy ${holidayName}! 🎊`,
-      'Wishing you a wonderful holiday season from the HeavyRent team!',
+      'Wishing you a wonderful holiday season from the Rent-To-Build team!',
       { type: 'holiday_greeting', holidayName }
     );
   }
