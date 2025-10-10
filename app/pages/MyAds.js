@@ -197,6 +197,11 @@ const MyAds = ({ navigation }) => {
                       <Text style={{ fontSize: 14, color: '#666', marginBottom: 3 }}>
                         Price: Rs {ad.rentPerDay || ad.price || '0'} / day
                       </Text>
+                      {ad.securityDeposit && (
+                        <Text style={{ fontSize: 13, color: '#FF9800', fontWeight: '600', marginBottom: 3 }}>
+                          Security: Rs. {ad.securityDeposit}
+                        </Text>
+                      )}
                       {/* Status Indicator */}
                       <View style={{ 
                         alignSelf: 'flex-start',

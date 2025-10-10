@@ -25,6 +25,7 @@ const AdForm = ({ navigation, route }) => {
     vehicleName: '',
     vehicleCondition: '',
     rentPerDay: '',
+    securityDeposit: '',
     power: '',
     capacity: '',
     torque: '',
@@ -85,6 +86,7 @@ const AdForm = ({ navigation, route }) => {
       vehicleName: adData.name || '',
       vehicleCondition: adData.specifications?.condition || '',
       rentPerDay: adData.price || adData.rentPerDay || '',
+      securityDeposit: adData.securityDeposit || '',
       power: adData.specifications?.power || '',
       capacity: adData.specifications?.capacity || '',
       torque: adData.specifications?.torque || '',
@@ -176,6 +178,7 @@ const AdForm = ({ navigation, route }) => {
       Alert.alert('Error', 'Please enter rent per day');
       return;
     }
+    // Security deposit is optional for old ads, will default to 0 if empty
     if (selectedImages.length === 0) {
       Alert.alert('Error', 'Please select at least one image');
       return;
@@ -233,6 +236,7 @@ const AdForm = ({ navigation, route }) => {
         name: formData.vehicleName,
         price: formData.rentPerDay,
         priceUnit: 'per day',
+        securityDeposit: formData.securityDeposit || '0',
         ownerId: user.uid || user.id,
         userId: user.uid || user.id, // Also save as userId for MyAds page compatibility
         ownerName: formData.fullName || `${user.firstName || ''} ${user.lastName || ''}`,
@@ -431,6 +435,13 @@ const AdForm = ({ navigation, route }) => {
           placeholder="Rent per Day (Rs) *"
           value={formData.rentPerDay}
           onChangeText={(value) => handleInputChange('rentPerDay', value)}
+          keyboardType="numeric"
+          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
+        />
+        <TextInput
+          placeholder="Security Deposit (Rs) - Optional (Default: 0)"
+          value={formData.securityDeposit}
+          onChangeText={(value) => handleInputChange('securityDeposit', value)}
           keyboardType="numeric"
           style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
         />

@@ -121,6 +121,11 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
               <View style={{ flex: 1, justifyContent: 'center' }}>
                 <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 5 }}>{item.name}</Text>
                 <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#47D6FF', marginBottom: 5 }}>${item.price}/{item.priceUnit}</Text>
+                {item.securityDeposit && (
+                  <Text style={{ fontSize: 13, color: '#FF9800', fontWeight: '600', marginBottom: 3 }}>
+                    Security: Rs. {item.securityDeposit}
+                  </Text>
+                )}
                 {item.ownerName && (
                   <Text style={{ fontSize: 12, color: '#999', fontStyle: 'italic', marginBottom: 2 }}>
                     Posted by: {item.ownerName}

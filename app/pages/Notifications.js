@@ -6,7 +6,8 @@ import {
   TouchableOpacity, 
   Alert,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
@@ -98,6 +99,49 @@ const Notifications = ({ navigation }) => {
           Alert.alert(notification.title, notification.message);
         }
         break;
+      case 'machinery_rented':
+        // Show detailed alert when machinery is rented
+        Alert.alert(
+          notification.title,
+          `Machinery: ${notification.machineryName}\n\nRenter Details:\n• Name: ${notification.renterName}\n• Phone: ${notification.renterPhone}\n• Address: ${notification.renterAddress}\n\nRental Info:\n• Start Date: ${notification.rentalStartDate}\n• Duration: ${notification.rentalDuration}\n• Delivery Location: ${notification.deliveryLocation}\n\nThe renter will contact you soon!`,
+          [
+            { 
+              text: 'View Details', 
+              onPress: () => navigation.navigate('Chat', { 
+                chatType: 'general',
+                chatId: null
+              })
+            },
+            { 
+              text: 'Call Renter', 
+              onPress: () => {
+                // Open phone dialer
+                const phoneUrl = `tel:${notification.renterPhone}`;
+                Linking.openURL(phoneUrl).catch(err => 
+                  console.error('Error opening phone dialer:', err)
+                );
+              }
+            },
+            { text: 'OK' }
+          ]
+        );
+        break;
+      case 'rent_approved':
+        Alert.alert(
+          notification.title,
+          notification.message,
+          [
+            { 
+              text: 'View Details', 
+              onPress: () => navigation.navigate('Chat', { 
+                chatType: 'general',
+                chatId: null
+              })
+            },
+            { text: 'OK' }
+          ]
+        );
+        break;
       default:
         Alert.alert(notification.title, notification.message);
     }
@@ -125,6 +169,10 @@ const Notifications = ({ navigation }) => {
         return 'add-circle';
       case 'admin_reply':
         return 'chatbubbles';
+      case 'machinery_rented':
+        return 'construct';
+      case 'rent_approved':
+        return 'checkmark-done-circle';
       default:
         return 'notifications';
     }
@@ -137,6 +185,10 @@ const Notifications = ({ navigation }) => {
           return colors.success || '#4CAF50';
         case 'ad_rejected':
           return colors.error || '#F44336';
+        case 'machinery_rented':
+          return '#FF9800'; // Orange for machinery rented
+        case 'rent_approved':
+          return colors.success || '#4CAF50';
         default:
           return colors.primary;
       }

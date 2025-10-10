@@ -391,7 +391,7 @@ const ThemeSettings = ({ navigation }) => {
           subtitle="Learn more about theme customization"
           onPress={() => Alert.alert(
             'About Themes',
-            'Rent-To-Build supports both light and dark themes to provide the best viewing experience in any lighting condition. You can also customize various accessibility options to make the app more comfortable to use.',
+            'HeavyRent supports both light and dark themes to provide the best viewing experience in any lighting condition. You can also customize various accessibility options to make the app more comfortable to use.',
             [{ text: 'OK' }]
           )}
         />

@@ -5,6 +5,26 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 // Function to notify admin about new ad
+export const notifyAdminRentRequest = async (requestData) => {
+  try {
+    const notification = {
+      type: 'rent_request',
+      title: 'New Rent Request',
+      message: `${requestData.userName} wants to rent ${requestData.machineryName}`,
+      requestId: requestData.id,
+      userId: requestData.userId,
+      machineryId: requestData.machineryId,
+      status: 'unread',
+      createdAt: serverTimestamp()
+    };
+
+    await addDoc(collection(db, 'adminNotifications'), notification);
+    console.log('Admin notification sent for rent request');
+  } catch (error) {
+    console.error('Error sending admin notification:', error);
+  }
+};
+
 export const notifyAdminNewAd = async (adData, userId) => {
   try {
     const notificationData = {

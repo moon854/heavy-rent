@@ -52,7 +52,7 @@ const MachineryDetails = ({ navigation, route }) => {
   });
   
   const goToRForm = () => {
-    navigation.navigate("RenterForm");
+    navigation.navigate("RenterForm", { machineryData: machinery });
   };
 
   const goToChat = () => {
@@ -107,7 +107,7 @@ const MachineryDetails = ({ navigation, route }) => {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {/* Header with back button */}
       <View style={{ backgroundColor: '#47D6FF', justifyContent: 'center', alignItems: 'center', width: '100%', height: 60, flexDirection: 'row' }}>
         <TouchableOpacity onPress={() => navigation.navigate("BottomTab")} style={{ position: 'absolute', left: 20 }}>
@@ -115,7 +115,11 @@ const MachineryDetails = ({ navigation, route }) => {
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>Machinery Details</Text>
       </View>
-      
+
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
       <View style={{ padding: 20 }}>
         <Text style={{ fontWeight: 'bold', fontSize: 24, marginBottom: 15, textAlign: 'center' }}>
           {machinery?.name || 'Machinery Name'}
@@ -130,6 +134,7 @@ const MachineryDetails = ({ navigation, route }) => {
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
+                nestedScrollEnabled={true}
                 style={{ marginBottom: 10 }}
               >
                 {machinery.imageUrls.map((imageUrl, index) => (
@@ -323,94 +328,104 @@ const MachineryDetails = ({ navigation, route }) => {
           backgroundColor: '#f2f2f2',
           marginTop: 30,
           marginHorizontal: 20,
-          height: 140,
           borderRadius: 12,
           padding: 20,
-          justifyContent: 'space-between',
+          marginBottom: 20
         }}
       >
-        <View>
-          <Text style={{ fontWeight: 'bold', fontSize: 20 }}>
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 8 }}>
             ${machinery?.price || 0} / {machinery?.priceUnit || 'day'}
           </Text>
+          {machinery?.securityDeposit && (
+            <Text style={{ fontSize: 14, color: '#47D6FF', marginBottom: 5, fontWeight: '600' }}>
+              Security Deposit: Rs. {machinery.securityDeposit}
+            </Text>
+          )}
           {machinery?.ownerName && (
-            <Text style={{ fontSize: 14, color: '#666', marginTop: 5 }}>
+            <Text style={{ fontSize: 14, color: '#666', marginBottom: 5 }}>
               Posted by: {machinery.ownerName}
             </Text>
           )}
           {machinery?.location && (
-            <Text style={{ fontSize: 12, color: '#999', marginTop: 3 }}>
+            <Text style={{ fontSize: 12, color: '#999' }}>
               Location: {machinery.location}
             </Text>
           )}
         </View>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
           {isOwner ? (
             // Owner buttons - Edit and Delete
             <>
-              <TouchableOpacity onPress={handleEditAd}>
+              <TouchableOpacity onPress={handleEditAd} style={{ flex: 1 }}>
                 <View
                   style={{
-                    width: 150,
-                    height: 40,
-                    borderWidth: 1,
+                    height: 45,
+                    borderWidth: 2,
                     borderColor: '#47D6FF',
-                    borderRadius: 8,
+                    borderRadius: 10,
                     justifyContent: 'center',
                     alignItems: 'center',
+                    backgroundColor: '#fff',
+                    flexDirection: 'row'
                   }}
                 >
-                  <Text style={{ fontSize: 15, color: '#47D6FF' }}>Edit Ad</Text>
+                  <Ionicons name="create-outline" size={20} color="#47D6FF" style={{ marginRight: 8 }} />
+                  <Text style={{ fontSize: 15, color: '#47D6FF', fontWeight: '600' }}>Edit Ad</Text>
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleDeleteAd}>
+              <TouchableOpacity onPress={handleDeleteAd} style={{ flex: 1 }}>
                 <View
                   style={{
-                    width: 150,
-                    height: 40,
+                    height: 45,
                     backgroundColor: '#FF4444',
-                    borderRadius: 8,
+                    borderRadius: 10,
                     justifyContent: 'center',
                     alignItems: 'center',
+                    flexDirection: 'row'
                   }}
                 >
-                  <Text style={{ fontSize: 15, color: '#fff' }}>Delete Ad</Text>
+                  <Ionicons name="trash-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                  <Text style={{ fontSize: 15, color: '#fff', fontWeight: '600' }}>Delete</Text>
                 </View>
               </TouchableOpacity>
             </>
           ) : (
             // Non-owner buttons - Chat and Request
             <>
-              <TouchableOpacity onPress={goToChat}>
+              <TouchableOpacity onPress={goToChat} style={{ flex: 1 }}>
                 <View
                   style={{
-                    width: 150,
-                    height: 40,
-                    borderWidth: 1,
+                    height: 45,
+                    borderWidth: 2,
                     borderColor: '#47D6FF',
-                    borderRadius: 8,
+                    borderRadius: 10,
                     justifyContent: 'center',
                     alignItems: 'center',
+                    backgroundColor: '#fff',
+                    flexDirection: 'row'
                   }}
                 >
-                  <Text style={{ fontSize: 15, color: '#47D6FF' }}>Chat With Admin</Text>
+                  <Ionicons name="chatbubble-outline" size={18} color="#47D6FF" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 14, color: '#47D6FF', fontWeight: '600' }}>Chat</Text>
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={goToRForm}>
+              <TouchableOpacity onPress={goToRForm} style={{ flex: 1 }}>
                 <View
                   style={{
-                    width: 150,
-                    height: 40,
+                    height: 45,
                     backgroundColor: '#47D6FF',
-                    borderRadius: 8,
+                    borderRadius: 10,
                     justifyContent: 'center',
                     alignItems: 'center',
+                    flexDirection: 'row'
                   }}
                 >
-                  <Text style={{ fontSize: 15, color: '#fff' }}>Request For Rent</Text>
+                  <Ionicons name="calendar-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 14, color: '#fff', fontWeight: '600' }}>Rent</Text>
                 </View>
               </TouchableOpacity>
             </>
@@ -462,7 +477,8 @@ const MachineryDetails = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 

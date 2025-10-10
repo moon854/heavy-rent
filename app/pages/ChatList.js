@@ -10,11 +10,13 @@ const ChatList = ({ navigation }) => {
   const [generalChats, setGeneralChats] = useState([]);
   const [adChats, setAdChats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
   const user = useSelector((state) => state?.home?.user) || {};
   const { colors, isDark } = useTheme();
+  const userId = user?.uid || user?.id;
 
   useEffect(() => {
-    if (!user.uid) {
+    if (!userId) {
       return;
     }
 
@@ -29,11 +31,22 @@ const ChatList = ({ navigation }) => {
       const generalChatIds = new Set();
       const adChatIds = new Set();
       
+      let unreadMessages = 0;
+
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         
-        // Check if this message involves the current user
-        if (data.senderId === user.uid || data.chatId?.includes(user.uid)) {
+        // Check if this message involves the current user (sender, recipientId, or chatId includes user)
+        const isUserMessage = data.senderId === userId || 
+                             data.recipientId === userId || 
+                             data.chatId?.includes(userId);
+        
+        // Count unread messages from admin to this user
+        if (data.recipientId === userId && data.senderType === 'admin' && data.status !== 'read') {
+          unreadMessages++;
+        }
+        
+        if (isUserMessage) {
           if (data.machineryDetails) {
             // Ad-specific chat
             if (!adChatIds.has(data.chatId)) {
@@ -61,6 +74,8 @@ const ChatList = ({ navigation }) => {
         }
       });
       
+      setUnreadCount(unreadMessages);
+      
       setGeneralChats(generalChatsData);
       setAdChats(adChatsData);
       setLoading(false);
@@ -69,7 +84,7 @@ const ChatList = ({ navigation }) => {
     return () => {
       unsubscribe();
     };
-  }, [user.uid]);
+  }, [userId]);
 
   const openGeneralChat = () => {
     navigation.navigate('Chat', { chatType: 'general' });
@@ -142,9 +157,28 @@ const ChatList = ({ navigation }) => {
                 backgroundColor: colors.primary + '20',
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginRight: 15
+                marginRight: 15,
+                position: 'relative'
               }}>
                 <Ionicons name="chatbubbles" size={24} color={colors.primary} />
+                {unreadCount > 0 && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -5,
+                    right: -5,
+                    backgroundColor: '#FF4444',
+                    borderRadius: 12,
+                    minWidth: 24,
+                    height: 24,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingHorizontal: 6
+                  }}>
+                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
+                      {unreadCount}
+                    </Text>
+                  </View>
+                )}
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{
@@ -159,7 +193,7 @@ const ChatList = ({ navigation }) => {
                   fontSize: 14,
                   color: colors.textSecondary
                 }}>
-                  General inquiries and support
+                  {unreadCount > 0 ? `${unreadCount} new message${unreadCount > 1 ? 's' : ''}` : 'General inquiries and support'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />

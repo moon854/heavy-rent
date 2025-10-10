@@ -5,7 +5,7 @@ class UserNotificationService {
   // Fetch notifications for a specific user
   async getUserNotifications(userId) {
     try {
-      const notificationsRef = collection(db, 'userNotifications');
+      const notificationsRef = collection(db, 'notifications');
       const q = query(
         notificationsRef,
         where('userId', '==', userId)
@@ -36,7 +36,7 @@ class UserNotificationService {
   // Mark notification as read
   async markAsRead(notificationId) {
     try {
-      await updateDoc(doc(db, 'userNotifications', notificationId), {
+      await updateDoc(doc(db, 'notifications', notificationId), {
         status: 'read'
       });
     } catch (error) {
@@ -47,7 +47,7 @@ class UserNotificationService {
   // Mark all notifications as read for a user
   async markAllAsRead(userId) {
     try {
-      const notificationsRef = collection(db, 'userNotifications');
+      const notificationsRef = collection(db, 'notifications');
       const q = query(
         notificationsRef,
         where('userId', '==', userId),
@@ -68,7 +68,7 @@ class UserNotificationService {
   // Get unread notification count
   async getUnreadCount(userId) {
     try {
-      const notificationsRef = collection(db, 'userNotifications');
+      const notificationsRef = collection(db, 'notifications');
       const q = query(
         notificationsRef,
         where('userId', '==', userId),
@@ -86,7 +86,7 @@ class UserNotificationService {
   // Listen to real-time notifications
   subscribeToNotifications(userId, callback) {
     try {
-      const notificationsRef = collection(db, 'userNotifications');
+      const notificationsRef = collection(db, 'notifications');
       const q = query(
         notificationsRef,
         where('userId', '==', userId)
