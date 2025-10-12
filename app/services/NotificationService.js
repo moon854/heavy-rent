@@ -39,14 +39,32 @@ class NotificationService {
     
     if (Platform.OS === 'android') {
       try {
+        // Create multiple notification channels for different types
         await Notifications.setNotificationChannelAsync('default', {
-          name: 'default',
+          name: 'Default Notifications',
           importance: Notifications.AndroidImportance.MAX,
           vibrationPattern: [0, 250, 250, 250],
           lightColor: '#47D6FF',
+          sound: 'default',
+          enableVibrate: true,
+          showBadge: true,
         });
+        
+        // Channel for messages
+        await Notifications.setNotificationChannelAsync('messages', {
+          name: 'Messages',
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#47D6FF',
+          sound: 'default',
+          enableVibrate: true,
+          showBadge: true,
+        });
+        
+        console.log('✅ Android notification channels created successfully');
       } catch (error) {
-        console.log('Android notification channel setup failed:', error.message);
+        console.log('⚠️ Android notification channel setup:', error.message);
+        // Continue even if channel creation fails
       }
     }
 
@@ -67,33 +85,26 @@ class NotificationService {
         
         // Skip push token generation in Expo Go to avoid errors
         if (isExpoGo) {
-          console.log('Push notifications disabled in Expo Go - using local notifications only');
-          console.log('For push notifications, use a development build instead of Expo Go');
+          console.log('✅ Expo Go detected - using local notifications only');
+          console.log('📱 Push notifications disabled in Expo Go SDK 53+');
+          console.log('💡 For remote push notifications, use EAS development build');
           return null;
         }
         
-        // Only try to get push token in development builds
+        // Only try to get push token in development builds (not Expo Go)
         try {
           const projectId = Constants.expoConfig?.projectId || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-          console.log('Using projectId:', projectId);
+          console.log('🔑 Using projectId for push token:', projectId);
           
           token = (await Notifications.getExpoPushTokenAsync({
             projectId: projectId,
           })).data;
-          console.log('Expo push token:', token);
+          console.log('✅ Expo push token obtained:', token);
           this.expoPushToken = token;
         } catch (error) {
-          console.error('Error getting push token:', error);
-          console.log('Push notifications will work locally but may not work for remote notifications without proper EAS setup');
-          
-          try {
-            token = (await Notifications.getExpoPushTokenAsync()).data;
-            console.log('Expo push token (fallback):', token);
-            this.expoPushToken = token;
-          } catch (fallbackError) {
-            console.error('Fallback push token error:', fallbackError);
-            return null;
-          }
+          console.error('⚠️ Push token error (normal in Expo Go):', error.message);
+          console.log('📱 Using local notifications only - this is expected in Expo Go');
+          return null;
         }
       } catch (error) {
         console.error('Error in notification setup:', error);
@@ -107,21 +118,37 @@ class NotificationService {
   }
 
   // Send local notification
-  async sendLocalNotification(title, body, data = {}) {
+  async sendLocalNotification(title, body, data = {}, channelId = 'default') {
     try {
+      const notificationContent = {
+        title: title,
+        body: body,
+        data: data,
+        sound: 'default',
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+        vibrate: [0, 250, 250, 250],
+      };
+      
+      // Add Android-specific channel
+      if (Platform.OS === 'android') {
+        notificationContent.android = {
+          channelId: channelId,
+          sound: true,
+          priority: 'high',
+          vibrate: true,
+        };
+      }
+      
       await Notifications.scheduleNotificationAsync({
-        content: {
-          title: title,
-          body: body,
-          data: data,
-          sound: 'default',
-        },
+        content: notificationContent,
         trigger: null, // Show immediately
       });
-      console.log('Local notification sent:', title);
+      console.log('✅ Local notification sent:', title);
+      return true;
     } catch (error) {
-      console.log('Error sending local notification:', error.message);
+      console.log('⚠️ Error sending local notification:', error.message);
       // Continue without throwing error
+      return false;
     }
   }
 
@@ -148,7 +175,8 @@ class NotificationService {
     await this.sendLocalNotification(
       `New Message from ${senderName} 💬`,
       messagePreview,
-      { type: 'new_message', senderName, messagePreview }
+      { type: 'new_message', senderName, messagePreview },
+      'messages' // Use messages channel
     );
   }
 

@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
 
 
@@ -30,6 +31,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { SafeAreaView } from 'react-native';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import LoginorRegister from './pages/LoginorRegister';
 import { persistor, store } from './redux/store';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import appNotificationManager from './services/AppNotificationManager';
@@ -41,25 +43,28 @@ function RenderStack() {
 
   if (!user?.uid ) {
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Register" component={Register} />
-      </Stack.Navigator>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Register" component={Register} />
+        </Stack.Navigator>
+      </NavigationContainer>
     );
   }
 
   return (
-    <Stack.Navigator initialRouteName="SplashScreen" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SplashScreen" component={SplashScreen} />
-      <Stack.Screen name="BottomTab" component={BottomTab} />
-      <Stack.Screen name="Excavators" component={Excavators} />
-      <Stack.Screen name="MachineryDetails" component={MachineryDetails} />
-      <Stack.Screen name="Chat" component={Chat} />
-      <Stack.Screen name="ChatList" component={ChatList} />
-      <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
-      <Stack.Screen name="ChangePassword" component={ChangePassword} />
-      <Stack.Screen name="RenterForm" component={RenterForm} />
-      <Stack.Screen name="RentalEstimation" component={RentalEstimation} />
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="SplashScreen" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="SplashScreen" component={SplashScreen} />
+        <Stack.Screen name="BottomTab" component={BottomTab} />
+        <Stack.Screen name="Excavators" component={Excavators} />
+        <Stack.Screen name="MachineryDetails" component={MachineryDetails} />
+        <Stack.Screen name="Chat" component={Chat} />
+        <Stack.Screen name="ChatList" component={ChatList} />
+        <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
+        <Stack.Screen name="ChangePassword" component={ChangePassword} />
+        <Stack.Screen name="RenterForm" component={RenterForm} />
+        <Stack.Screen name="RentalEstimation" component={RentalEstimation} />
         <Stack.Screen name="Payment" component={Payment} />
         <Stack.Screen name="Success" component={Success} />
         <Stack.Screen name="AdForm" component={AdForm} />
@@ -70,7 +75,8 @@ function RenderStack() {
         <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
         <Stack.Screen name="NotificationTest" component={NotificationTest} />
         <Stack.Screen name="ThemeSettings" component={ThemeSettings} />
-    </Stack.Navigator>
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

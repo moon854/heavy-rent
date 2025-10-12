@@ -17,34 +17,53 @@ class AppNotificationManager {
     if (this.isInitialized) return;
 
     try {
-      console.log('Initializing notification system...');
+      console.log('🔔 Initializing notification system...');
       
-      // Register for push notifications
+      // Register for push notifications (will return null in Expo Go)
       const token = await notificationService.registerForPushNotificationsAsync();
       
       if (token) {
-        console.log('Push notification token obtained:', token);
+        console.log('✅ Push notification token obtained:', token);
         // Here you would typically send the token to your backend server
         // await sendTokenToServer(token);
       } else {
-        console.log('Push notification token not available, using local notifications only');
+        console.log('📱 Using local notifications only (normal in Expo Go)');
       }
 
-      // Set up notification listeners
+      // Set up notification listeners (always works)
       try {
         notificationService.setupNotificationListeners();
+        console.log('✅ Notification listeners setup successfully');
       } catch (listenerError) {
-        console.log('Notification listeners setup failed:', listenerError.message);
+        console.log('⚠️ Notification listeners setup failed:', listenerError.message);
         // Continue without listeners
       }
       
       this.isInitialized = true;
-      console.log('Notification system initialized successfully');
+      console.log('✅ Notification system initialized successfully');
       
     } catch (error) {
-      console.error('Failed to initialize notification system:', error);
+      console.error('❌ Failed to initialize notification system:', error);
       // Continue with local notifications even if push notifications fail
       this.isInitialized = true;
+    }
+  }
+
+  // Send test notification (for debugging)
+  async sendTestNotification() {
+    try {
+      console.log('🧪 Sending test notification...');
+      await notificationService.sendLocalNotification(
+        'Test Notification 📱',
+        'This is a test notification to verify the system is working!',
+        { type: 'test' },
+        'default'
+      );
+      console.log('✅ Test notification sent successfully');
+      return true;
+    } catch (error) {
+      console.log('❌ Error sending test notification:', error.message);
+      return false;
     }
   }
 

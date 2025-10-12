@@ -55,6 +55,16 @@ const Payment = ({ navigation, route }) => {
             const paymentProofUrl = await uploadImageToCloudinary(selectedImage.uri);
 
             // Create rent request object
+            console.log('💾 Creating rent request...');
+            console.log('👤 Current User:', user);
+            console.log('🆔 User ID:', user?.uid || user?.id);
+            console.log('🚜 Machinery Data:', machineryData);
+            console.log('🏷️ Category Fields:', {
+                categoryName: machineryData?.categoryName,
+                category: machineryData?.category,
+                categoryId: machineryData?.categoryId
+            });
+            
             const rentRequest = {
                 userId: user?.uid || user?.id || '',
                 userName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Unknown User',
@@ -65,6 +75,8 @@ const Payment = ({ navigation, route }) => {
                 // Machinery details
                 machineryId: machineryData?.id || '',
                 machineryName: machineryData?.name || 'N/A',
+                // Priority: categoryName (display name from Home) > category > categoryId
+                machineryCategory: machineryData?.categoryName || machineryData?.category || machineryData?.categoryId || 'Machinery',
                 machineryOwnerId: machineryData?.userId || machineryData?.ownerId || '',
                 machineryOwnerName: machineryData?.ownerName || 'Unknown Owner',
                 machineryOwnerPhone: machineryData?.ownerPhone || 'N/A',
@@ -96,11 +108,14 @@ const Payment = ({ navigation, route }) => {
                 approvedBy: null
             };
 
-            console.log('Rent request data before saving:', rentRequest);
+            console.log('📋 Rent request data before saving:', rentRequest);
+            console.log('🔑 userId being saved:', rentRequest.userId);
+            console.log('🏷️ Category being saved:', rentRequest.machineryCategory);
 
             // Save rent request to Firebase
             const docRef = await addDoc(collection(db, 'rentRequests'), rentRequest);
-            console.log('Rent request saved:', docRef.id);
+            console.log('✅ Rent request saved with ID:', docRef.id);
+            console.log('💾 Document saved for userId:', rentRequest.userId);
 
             // Notify admin about new rent request
             await notifyAdminRentRequest({

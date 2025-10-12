@@ -258,9 +258,7 @@ export const uploadImageToCloudinary = async (imageUri) => {
             {
                 method: "POST",
                 body: data,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+                // Don't set Content-Type header - let FormData set it automatically with boundary
             }
         );
 

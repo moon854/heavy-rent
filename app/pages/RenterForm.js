@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+// import DateTimePicker from '@react-native-community/datetimepicker'
 
 const RenterForm = ({ navigation, route }) => {
   const machineryData = route?.params?.machineryData || {};
@@ -21,9 +22,32 @@ const RenterForm = ({ navigation, route }) => {
 
   const [showDurationPicker, setShowDurationPicker] = useState(false)
   const [showProjectPicker, setShowProjectPicker] = useState(false)
+  // const [showDatePicker, setShowDatePicker] = useState(false)
+  // const [selectedDate, setSelectedDate] = useState(new Date())
 
   const durations = ['1 Day', '3 Days', '1 Week', '2 Weeks', '1 Month', 'Custom']
   const projectTypes = ['Construction', 'Road Work', 'Mining', 'Demolition', 'Landscaping', 'Other']
+
+  // const onDateChange = (event, date) => {
+  //   if (Platform.OS === 'android') {
+  //     setShowDatePicker(false)
+  //   }
+  //   
+  //   if (date) {
+  //     setSelectedDate(date)
+  //     // Format date as DD/MM/YYYY
+  //     const day = String(date.getDate()).padStart(2, '0')
+  //     const month = String(date.getMonth() + 1).padStart(2, '0')
+  //     const year = date.getFullYear()
+  //     const formattedDate = `${day}/${month}/${year}`
+  //     setFormData({ ...formData, rentalStartDate: formattedDate })
+  //   }
+  // }
+
+  const formatDisplayDate = (dateString) => {
+    if (!dateString) return 'Select rental start date'
+    return dateString
+  }
 
   const goToRentalEst = () => {
     // Validation
@@ -120,12 +144,58 @@ const RenterForm = ({ navigation, route }) => {
         </Text>
         
         {/* Start Date */}
-        <TextInput 
-          style={{ width: "100%", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, paddingHorizontal: 15, marginBottom: 12, backgroundColor: '#f9f9f9' }} 
-          placeholder="Rental Start Date (e.g., 15/01/2025) *" 
-          value={formData.rentalStartDate}
-          onChangeText={(text) => setFormData({ ...formData, rentalStartDate: text })}
-        />
+        <TouchableOpacity 
+          onPress={() => setShowDatePicker(true)}
+          style={{ 
+            width: "100%", 
+            borderWidth: 1, 
+            borderColor: "#ddd", 
+            borderRadius: 8, 
+            paddingVertical: 12, 
+            paddingHorizontal: 15, 
+            marginBottom: 12, 
+            backgroundColor: '#f9f9f9',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="calendar" size={20} color="#47D6FF" style={{ marginRight: 10 }} />
+            <Text style={{ color: formData.rentalStartDate ? '#333' : '#999' }}>
+              {formatDisplayDate(formData.rentalStartDate)}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#47D6FF" />
+        </TouchableOpacity>
+
+        {/* Date Picker */}
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onDateChange}
+            minimumDate={new Date()}
+            style={{ backgroundColor: '#fff' }}
+          />
+        )}
+
+        {/* iOS Date Picker Done Button */}
+        {showDatePicker && Platform.OS === 'ios' && (
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(false)}
+            style={{
+              backgroundColor: '#47D6FF',
+              paddingVertical: 10,
+              borderRadius: 8,
+              alignItems: 'center',
+              marginBottom: 12
+            }}
+          >
+            <Text style={{ color: '#fff', fontWeight: '600' }}>Done</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Duration */}
         <TouchableOpacity 

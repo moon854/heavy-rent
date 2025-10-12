@@ -54,8 +54,8 @@ const Chat = ({ navigation, route }) => {
           message: data.message?.substring(0, 50)
         });
         
-        // Show messages for this specific chat OR messages sent to this user
-        if (data.chatId === chatId || data.recipientId === userId) {
+        // Show messages for this specific chat only
+        if (data.chatId === chatId) {
           console.log('✅ Message matched for this user!');
           chatMessages.push({
             id: doc.id,
@@ -76,21 +76,32 @@ const Chat = ({ navigation, route }) => {
       setMessages(chatMessages);
       setLoading(false);
 
-      // Mark admin messages as read
-      const unreadAdminMessages = chatMessages.filter(
-        msg => msg.recipientId === userId && msg.senderType === 'admin' && msg.status !== 'read'
+      // Mark all incoming messages as read (messages sent to this user by others)
+      const unreadMessages = chatMessages.filter(
+        msg => msg.recipientId === userId && 
+               msg.status !== 'read' && 
+               msg.senderId !== userId // Don't mark own messages
       );
 
-      if (unreadAdminMessages.length > 0) {
+      if (unreadMessages.length > 0) {
+        console.log('📖 Marking', unreadMessages.length, 'messages as read for user:', userId);
+        console.log('📝 Messages to mark:', unreadMessages.map(m => ({ 
+          id: m.id, 
+          sender: m.senderName, 
+          status: m.status,
+          text: (m.message || m.text)?.substring(0, 20)
+        })));
+        
         // Mark messages as read in background
-        unreadAdminMessages.forEach(async (msg) => {
+        unreadMessages.forEach(async (msg) => {
           try {
             await updateDoc(doc(db, 'chatMessages', msg.id), {
               status: 'read',
               readAt: serverTimestamp()
             });
+            console.log('✅ Marked message as read:', msg.id);
           } catch (error) {
-            console.error('Error marking message as read:', error);
+            console.error('❌ Error marking message as read:', error);
           }
         });
       }

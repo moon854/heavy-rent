@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 
-const AuthChoice = ({ navigation }) => {
+const LoginorRegister = ({ navigation }) => {
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff", padding: 20 }}>
       
@@ -28,4 +28,4 @@ const AuthChoice = ({ navigation }) => {
   )
 }
 
-export default AuthChoice
+export default LoginorRegister

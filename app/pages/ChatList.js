@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../contexts/ThemeContext';
-import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -10,7 +10,8 @@ const ChatList = ({ navigation }) => {
   const [generalChats, setGeneralChats] = useState([]);
   const [adChats, setAdChats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadGeneralCount, setUnreadGeneralCount] = useState(0);
+  const [unreadMachineryCount, setUnreadMachineryCount] = useState(0);
   const user = useSelector((state) => state?.home?.user) || {};
   const { colors, isDark } = useTheme();
   const userId = user?.uid || user?.id;
@@ -31,7 +32,8 @@ const ChatList = ({ navigation }) => {
       const generalChatIds = new Set();
       const adChatIds = new Set();
       
-      let unreadMessages = 0;
+      let unreadGeneralMessages = 0;
+      let unreadMachineryMessages = 0;
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -43,12 +45,30 @@ const ChatList = ({ navigation }) => {
         
         // Count unread messages from admin to this user
         if (data.recipientId === userId && data.senderType === 'admin' && data.status !== 'read') {
-          unreadMessages++;
+          if (data.machineryDetails) {
+            unreadMachineryMessages++;
+          } else {
+            unreadGeneralMessages++;
+          }
         }
         
         if (isUserMessage) {
-          if (data.machineryDetails) {
-            // Ad-specific chat
+          // Check if this is a machinery inquiry chat
+          const isMachineryChat = data.machineryDetails || 
+                                 data.chatId?.includes('machinery_') || 
+                                 data.chatId?.includes('rent_approved_renter') ||
+                                 data.chatId?.includes('rent_approved_publisher');
+          
+          console.log('🔍 ChatList: Processing message:', {
+            chatId: data.chatId,
+            hasMachineryDetails: !!data.machineryDetails,
+            isMachineryChat,
+            message: data.message?.substring(0, 30),
+            senderType: data.senderType
+          });
+          
+          if (isMachineryChat) {
+            // Ad-specific chat - only show in Machinery Inquiries section
             if (!adChatIds.has(data.chatId)) {
               adChatIds.add(data.chatId);
               adChatsData.push({
@@ -58,10 +78,11 @@ const ChatList = ({ navigation }) => {
                 machineryDetails: data.machineryDetails,
                 chatType: 'ad'
               });
+              console.log('✅ Added to Machinery Inquiries:', data.chatId);
             }
           } else {
-            // General chat - only show if it's actually a general chat (not machinery related)
-            if (!generalChatIds.has(data.chatId) && !data.chatId?.includes('machinery_')) {
+            // General chat - only show in General Support section
+            if (!generalChatIds.has(data.chatId)) {
               generalChatIds.add(data.chatId);
               generalChatsData.push({
                 id: data.chatId,
@@ -69,12 +90,14 @@ const ChatList = ({ navigation }) => {
                 lastMessageTime: data.createdAt,
                 chatType: 'general'
               });
+              console.log('✅ Added to General Support:', data.chatId);
             }
           }
         }
       });
       
-      setUnreadCount(unreadMessages);
+      setUnreadGeneralCount(unreadGeneralMessages);
+      setUnreadMachineryCount(unreadMachineryMessages);
       
       setGeneralChats(generalChatsData);
       setAdChats(adChatsData);
@@ -104,6 +127,65 @@ const ChatList = ({ navigation }) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const clearChatsExceptOwnerCards = async () => {
+    Alert.alert(
+      'Clear Chats',
+      'This will delete all chat messages except machinery owner cards. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              console.log('🗑️ Clearing all chats except machinery owner cards...');
+              
+              // Get all chat messages
+              const messagesRef = collection(db, 'chatMessages');
+              const q = query(messagesRef);
+              const snapshot = await getDocs(q);
+              
+              let deletedCount = 0;
+              let preservedCount = 0;
+              
+              for (const docSnapshot of snapshot.docs) {
+                const data = docSnapshot.data();
+                
+                // Preserve machinery owner cards (rent approval messages)
+                const isOwnerCard = data.type === 'publisher_card' || 
+                                   data.chatId?.includes('rent_approved_publisher') ||
+                                   data.chatId?.includes('rent_approved_renter');
+                
+                if (isOwnerCard) {
+                  preservedCount++;
+                  console.log('🔒 Preserving owner card:', docSnapshot.id);
+                } else {
+                  await deleteDoc(doc(db, 'chatMessages', docSnapshot.id));
+                  deletedCount++;
+                  console.log('🗑️ Deleted chat:', docSnapshot.id);
+                }
+              }
+              
+              Alert.alert(
+                'Chats Cleared',
+                `Deleted: ${deletedCount} messages\nPreserved: ${preservedCount} owner cards`,
+                [{ text: 'OK' }]
+              );
+              
+              console.log(`✅ Chat clearing complete:`);
+              console.log(`   Deleted: ${deletedCount} messages`);
+              console.log(`   Preserved: ${preservedCount} owner cards`);
+              
+            } catch (error) {
+              console.error('❌ Error clearing chats:', error);
+              Alert.alert('Error', 'Failed to clear chats. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
@@ -122,10 +204,32 @@ const ChatList = ({ navigation }) => {
           fontSize: 18,
           fontWeight: '600',
           color: colors.textPrimary,
-          marginLeft: 10
+          marginLeft: 10,
+          flex: 1
         }}>
           Chats
         </Text>
+        <TouchableOpacity 
+          onPress={clearChatsExceptOwnerCards}
+          style={{
+            backgroundColor: '#FF4444',
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 6,
+            flexDirection: 'row',
+            alignItems: 'center'
+          }}
+        >
+          <Ionicons name="trash" size={16} color="#fff" />
+          <Text style={{
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: '600',
+            marginLeft: 4
+          }}>
+            Clear
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={{ flex: 1 }}>
@@ -161,7 +265,7 @@ const ChatList = ({ navigation }) => {
                 position: 'relative'
               }}>
                 <Ionicons name="chatbubbles" size={24} color={colors.primary} />
-                {unreadCount > 0 && (
+                {unreadGeneralCount > 0 && (
                   <View style={{
                     position: 'absolute',
                     top: -5,
@@ -175,7 +279,7 @@ const ChatList = ({ navigation }) => {
                     paddingHorizontal: 6
                   }}>
                     <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
-                      {unreadCount}
+                      {unreadGeneralCount}
                     </Text>
                   </View>
                 )}
@@ -193,7 +297,7 @@ const ChatList = ({ navigation }) => {
                   fontSize: 14,
                   color: colors.textSecondary
                 }}>
-                  {unreadCount > 0 ? `${unreadCount} new message${unreadCount > 1 ? 's' : ''}` : 'General inquiries and support'}
+                  {unreadGeneralCount > 0 ? `${unreadGeneralCount} new message${unreadGeneralCount > 1 ? 's' : ''}` : 'General inquiries and support'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -203,14 +307,31 @@ const ChatList = ({ navigation }) => {
 
         {/* Ad-specific Chats Section */}
         <View style={{ padding: 15 }}>
-          <Text style={{
-            fontSize: 16,
-            fontWeight: '600',
-            color: colors.textPrimary,
-            marginBottom: 10
-          }}>
-            Machinery Inquiries
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: colors.textPrimary
+            }}>
+              Machinery Inquiries
+            </Text>
+            {unreadMachineryCount > 0 && (
+              <View style={{
+                backgroundColor: '#FF4444',
+                borderRadius: 12,
+                minWidth: 24,
+                height: 24,
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingHorizontal: 6,
+                marginLeft: 10
+              }}>
+                <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
+                  {unreadMachineryCount}
+                </Text>
+              </View>
+            )}
+          </View>
           
           {loading ? (
             <View style={{ padding: 20, alignItems: 'center' }}>

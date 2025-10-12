@@ -17,28 +17,24 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.renttobuild.app",
+      "permissions": [
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM",
+        "POST_NOTIFICATIONS"
+      ],
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#47DAFF"
-        }
-      ]
-    ],
+    "plugins": [],
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#47DAFF"
-    },
+    }
   }
 }
