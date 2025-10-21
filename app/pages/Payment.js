@@ -55,8 +55,11 @@ const Payment = ({ navigation, route }) => {
             const paymentProofUrl = await uploadImageToCloudinary(selectedImage.uri);
 
             // Create rent request object
+            const userId = user?.uid || user?.id || '';
+            console.log('Payment: Creating rent request for user:', userId);
+            
             const rentRequest = {
-                userId: user?.uid || user?.id || '',
+                userId: userId,
                 userName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Unknown User',
                 userEmail: user?.email || '',
                 userPhone: user?.phone || paymentData.rentalInfo?.phone || 'N/A',

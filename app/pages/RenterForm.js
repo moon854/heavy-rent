@@ -1,9 +1,88 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import DateTimePicker from '@react-native-community/datetimepicker'
 
 const RenterForm = ({ navigation, route }) => {
   const machineryData = route?.params?.machineryData || {};
+
+  // Utility function to parse dates from various formats
+  const parseDate = (dateStr) => {
+    if (!dateStr) return null;
+    
+    try {
+      const str = dateStr.toString().trim();
+      let startDate = null;
+      
+      // Format 1: DD/MM/YYYY or DD-MM-YYYY
+      if (str.includes('/') || str.includes('-')) {
+        const dateParts = str.split(/[/-]/);
+        if (dateParts.length === 3) {
+          const day = parseInt(dateParts[0]);
+          const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
+          const year = parseInt(dateParts[2]);
+          
+          // Validate date parts
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year) && 
+              day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 2020) {
+            startDate = new Date(year, month, day);
+          }
+        }
+      }
+      
+      // Format 2: MM/DD/YYYY (American format)
+      if (!startDate && str.includes('/')) {
+        const dateParts = str.split('/');
+        if (dateParts.length === 3) {
+          const month = parseInt(dateParts[0]) - 1;
+          const day = parseInt(dateParts[1]);
+          const year = parseInt(dateParts[2]);
+          
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year) && 
+              day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 2020) {
+            startDate = new Date(year, month, day);
+          }
+        }
+      }
+      
+      // Format 3: YYYY-MM-DD
+      if (!startDate && str.includes('-')) {
+        const dateParts = str.split('-');
+        if (dateParts.length === 3 && dateParts[0].length === 4) {
+          const year = parseInt(dateParts[0]);
+          const month = parseInt(dateParts[1]) - 1;
+          const day = parseInt(dateParts[2]);
+          
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year) && 
+              day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 2020) {
+            startDate = new Date(year, month, day);
+          }
+        }
+      }
+      
+      // Validate the parsed date
+      if (startDate && !isNaN(startDate.getTime())) {
+        return startDate;
+      }
+    } catch (error) {
+      console.error('Date parse error:', error);
+    }
+    
+    return null;
+  };
+
+  // Utility function to get number of days from duration string
+  const getDaysFromDuration = (duration) => {
+    switch (duration) {
+      case '1 Day': return 1;
+      case '3 Days': return 3;
+      case '1 Week': return 7;
+      case '2 Weeks': return 14;
+      case '1 Month': return 30;
+      default: return 1;
+    }
+  };
+
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -21,9 +100,25 @@ const RenterForm = ({ navigation, route }) => {
 
   const [showDurationPicker, setShowDurationPicker] = useState(false)
   const [showProjectPicker, setShowProjectPicker] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(new Date())
 
   const durations = ['1 Day', '3 Days', '1 Week', '2 Weeks', '1 Month', 'Custom']
   const projectTypes = ['Construction', 'Road Work', 'Mining', 'Demolition', 'Landscaping', 'Other']
+
+  // Date picker change handler
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setSelectedDate(selectedDate);
+      // Format date as DD/MM/YYYY
+      const day = selectedDate.getDate().toString().padStart(2, '0');
+      const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+      const year = selectedDate.getFullYear();
+      const formattedDate = `${day}/${month}/${year}`;
+      setFormData({ ...formData, rentalStartDate: formattedDate });
+    }
+  };
 
   const goToRentalEst = () => {
     // Validation
@@ -43,8 +138,14 @@ const RenterForm = ({ navigation, route }) => {
       alert('Please accept terms and conditions')
       return
     }
+    // Add numberOfDays to the rental data
+    const rentalDataWithDays = {
+      ...formData,
+      numberOfDays: getDaysFromDuration(formData.rentalDuration)
+    };
+    
     navigation.navigate("RentalEstimation", { 
-      rentalData: formData, 
+      rentalData: rentalDataWithDays, 
       machineryData: machineryData 
     });
   }
@@ -120,12 +221,27 @@ const RenterForm = ({ navigation, route }) => {
         </Text>
         
         {/* Start Date */}
-        <TextInput 
-          style={{ width: "100%", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, paddingHorizontal: 15, marginBottom: 12, backgroundColor: '#f9f9f9' }} 
-          placeholder="Rental Start Date (e.g., 15/01/2025) *" 
-          value={formData.rentalStartDate}
-          onChangeText={(text) => setFormData({ ...formData, rentalStartDate: text })}
-        />
+        <TouchableOpacity 
+          onPress={() => setShowDatePicker(true)}
+          style={{ width: "100%", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, paddingHorizontal: 15, marginBottom: 12, backgroundColor: '#f9f9f9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Text style={{ color: formData.rentalStartDate ? '#333' : '#999' }}>
+            {formData.rentalStartDate || 'Select Rental Start Date *'}
+          </Text>
+          <Ionicons name="calendar-outline" size={20} color="#47D6FF" />
+        </TouchableOpacity>
+
+        {/* Date Picker */}
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onDateChange}
+            minimumDate={new Date()} // Don't allow past dates
+            style={{ backgroundColor: 'white' }}
+          />
+        )}
 
         {/* Duration */}
         <TouchableOpacity 
@@ -150,6 +266,34 @@ const RenterForm = ({ navigation, route }) => {
                 <Text style={{ color: formData.rentalDuration === duration ? '#47D6FF' : '#333' }}>{duration}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+        )}
+
+        {/* End Date Display */}
+        {formData.rentalStartDate && formData.rentalDuration && (
+          <View style={{ 
+            backgroundColor: '#e8f5e9', 
+            padding: 12, 
+            borderRadius: 8, 
+            marginBottom: 12,
+            borderLeftWidth: 4,
+            borderLeftColor: '#4caf50'
+          }}>
+            <Text style={{ color: '#2e7d32', fontWeight: 'bold', marginBottom: 4 }}>
+              📅 Rental Period:
+            </Text>
+            <Text style={{ color: '#2e7d32', fontSize: 16, fontWeight: '600' }}>
+              {(() => {
+                const startDate = parseDate(formData.rentalStartDate);
+                if (startDate) {
+                  const numberOfDays = getDaysFromDuration(formData.rentalDuration);
+                  const endDate = new Date(startDate);
+                  endDate.setDate(endDate.getDate() + (numberOfDays - 1));
+                  return `${startDate.toLocaleDateString('en-GB')} → ${endDate.toLocaleDateString('en-GB')} (${numberOfDays} days)`;
+                }
+                return 'Invalid date format';
+              })()}
+            </Text>
           </View>
         )}
 
