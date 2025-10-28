@@ -24,8 +24,21 @@ const Notifications = ({ navigation }) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchNotifications();
-    }, [])
+      // Subscribe for real-time updates
+      const userId = user.uid || user.id;
+      let unsubscribe = null;
+      if (userId) {
+        unsubscribe = UserNotificationService.subscribeToNotifications(userId, (list) => {
+          setNotifications(list);
+          setLoading(false);
+        });
+      } else {
+        fetchNotifications();
+      }
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
+    }, [user?.uid, user?.id])
   );
 
   const fetchNotifications = async () => {
@@ -56,7 +69,7 @@ const Notifications = ({ navigation }) => {
   const handleNotificationPress = async (notification) => {
     // Mark as read if unread
     if (notification.status === 'unread') {
-      await UserNotificationService.markAsRead(notification.id);
+      await UserNotificationService.markAsRead(notification);
       // Update local state
       setNotifications(prev => 
         prev.map(n => 

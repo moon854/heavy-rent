@@ -17,21 +17,19 @@ const Profile = () => {
   const { colors, isDark } = useTheme();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch unread notification count
+  // Live unread notification count
   useEffect(() => {
-    const fetchUnreadCount = async () => {
-      if (user?.uid || user?.id) {
-        try {
-          const count = await UserNotificationService.getUnreadCount(user.uid || user.id);
-          setUnreadCount(count);
-        } catch (error) {
-          console.error('Error fetching unread count:', error);
-        }
-      }
+    const userId = user?.uid || user?.id;
+    if (!userId) return;
+    // Subscribe and derive unread count from incoming list
+    const unsubscribe = UserNotificationService.subscribeToNotifications(userId, (list) => {
+      const count = list.filter(n => n.status === 'unread').length;
+      setUnreadCount(count);
+    });
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
     };
-
-    fetchUnreadCount();
-  }, [user]);
+  }, [user?.uid, user?.id]);
 
   // Force re-render when screen comes into focus
   useFocusEffect(

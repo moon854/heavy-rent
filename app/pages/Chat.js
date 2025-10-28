@@ -54,9 +54,9 @@ const Chat = ({ navigation, route }) => {
           message: data.message?.substring(0, 50)
         });
         
-        // Show messages for this specific chat OR messages sent to this user
-        if (data.chatId === chatId || data.recipientId === userId) {
-          console.log('✅ Message matched for this user!');
+        // STRICT: Show messages ONLY for this specific chatId
+        if (data.chatId === chatId) {
+          console.log('✅ Message matched for this chat!');
           chatMessages.push({
             id: doc.id,
             ...data
@@ -127,12 +127,21 @@ const Chat = ({ navigation, route }) => {
       await addDoc(collection(db, 'chatMessages'), messageData);
       
       // Send notification to admin
+      const machineryDetails = machinery ? {
+        id: machinery.id,
+        name: machinery.name,
+        category: machinery.categoryName || machinery.category,
+        price: machinery.price,
+        location: machinery.location,
+        imageUrl: machinery.imageUrl || machinery.imageUrls?.[0]
+      } : null;
+      
       await notifyAdminNewMessage(
         userId,
         user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'User',
         message.trim(),
         chatId,
-        machinery
+        machineryDetails
       );
       
       setMessage("");

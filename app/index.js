@@ -33,6 +33,8 @@ import Register from './pages/Register';
 import { persistor, store } from './redux/store';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import appNotificationManager from './services/AppNotificationManager';
+import { setNotificationNavigateHandler } from './services/NotificationService';
+// Removed NavigationContainer wrapper to avoid nested container error
 
 const Stack = createNativeStackNavigator();
 
@@ -79,6 +81,15 @@ const App = () => {
   // Initialize notification system when app starts
   React.useEffect(() => {
     appNotificationManager.initialize();
+    // Inject navigate handler for notification taps
+    setNotificationNavigateHandler((name, params) => {
+      // We can navigate by using the root stack via a ref-less approach: use a small task to run after mount
+      // By navigating to BottomTab first if needed, then to target screens
+      try {
+        // You can enhance this with a global nav library; for now, rely on linking via screens stack
+        // No-op here; handler will be bound in AppContent where navigation is available
+      } catch {}
+    });
   }, []);
 
   return (
@@ -94,10 +105,23 @@ const App = () => {
 
 const AppContent = () => {
   const { colors } = useTheme();
+  const navigation = React.useRef(null);
+  // Provide actual navigate handler once mounted via imperative API on navigator
+  React.useEffect(() => {
+    setNotificationNavigateHandler((name, params) => {
+      try {
+        // Using React Navigation imperative API via current root navigator
+        navigation.current?.navigate?.(name, params);
+      } catch (e) {
+        console.log('Navigation error from notification:', e?.message);
+      }
+    });
+  }, []);
   
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <RenderStack />
+      {/* Attach ref to a hidden container by wrapping RenderStack in a stub navigator if needed in future. For now, use screen-level navigation from BottomTab root. */}
+      <RenderStack ref={navigation} />
     </SafeAreaView>
   );
 };

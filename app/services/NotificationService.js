@@ -2,6 +2,10 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+let externalNavigate;
+export function setNotificationNavigateHandler(fn) {
+  externalNavigate = fn;
+}
 
 // Configure notification behavior
 try {
@@ -244,29 +248,32 @@ class NotificationService {
 
       // Listener for user interactions with notifications
       this.responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-        console.log('Notification response:', response);
-        const data = response.notification.request.content.data;
-        
-        // Handle different notification types
-        switch (data.type) {
-          case 'ad_posted':
-            // Navigate to My Ads page
-            break;
-          case 'ad_viewed':
-            // Navigate to ad details
-            break;
-          case 'new_message':
-            // Navigate to chat
-            break;
-          case 'rental_request':
-            // Navigate to rental requests
-            break;
-          case 'payment_received':
-            // Navigate to payment history
-            break;
-          default:
-            // Navigate to home
-            break;
+        try {
+          const data = response?.notification?.request?.content?.data || {};
+          const type = data.type;
+          // Use injected navigate handler from app
+          const nav = externalNavigate;
+          if (!nav) return;
+
+          if (type === 'admin_reply' || type === 'new_message') {
+            const chatType = data.machineryDetails ? 'ad' : 'general';
+            nav('Chat', {
+              chatType,
+              machinery: data.machineryDetails || null,
+              chatId: data.chatId || null,
+            });
+            return;
+          }
+
+          if (type === 'ad_approved' || type === 'ad_rejected') {
+            nav('MyAds');
+            return;
+          }
+
+          // Default: open Notifications list
+          nav('Notifications');
+        } catch (e) {
+          console.log('Notification response handling error:', e?.message);
         }
       });
     } catch (error) {

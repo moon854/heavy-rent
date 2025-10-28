@@ -1,4 +1,6 @@
 import notificationService from './NotificationService';
+import UserNotificationService from './UserNotificationService';
+import { store } from '../redux/store';
 
 class AppNotificationManager {
   constructor() {
@@ -38,6 +40,37 @@ class AppNotificationManager {
         // Continue without listeners
       }
       
+      // Subscribe to user notifications and fire local notifications on new unread items
+      try {
+        const state = store.getState();
+        const user = state?.home?.user;
+        const userId = user?.uid || user?.id;
+        if (userId) {
+          let lastIds = new Set();
+          this.unsubscribeUserNotifications = UserNotificationService.subscribeToNotifications(userId, async (list) => {
+            // Build a set of current IDs
+            const currentIds = new Set(list.map(n => n.id + ':' + (n.__collection || 'notifications')));
+            // Find newly arrived unread notifications
+            const newUnread = list.filter(n => n.status === 'unread' && !lastIds.has(n.id + ':' + (n.__collection || 'notifications')));
+            for (const n of newUnread) {
+              const title = n.title || 'New Notification';
+              const body = n.message || '';
+              const data = { 
+                type: n.type || 'notification', 
+                notificationId: n.id, 
+                chatId: n.chatId, 
+                __collection: n.__collection,
+                machineryDetails: n.machineryDetails || null
+              };
+              await notificationService.sendLocalNotification(title, body, data);
+            }
+            lastIds = currentIds;
+          });
+        }
+      } catch (subErr) {
+        console.log('User notifications subscription failed:', subErr?.message);
+      }
+
       this.isInitialized = true;
       console.log('Notification system initialized successfully');
       
@@ -231,6 +264,10 @@ class AppNotificationManager {
   cleanup() {
     try {
       notificationService.cleanup();
+      if (this.unsubscribeUserNotifications) {
+        this.unsubscribeUserNotifications();
+        this.unsubscribeUserNotifications = null;
+      }
       this.isInitialized = false;
     } catch (error) {
       console.log('Error cleaning up app notification manager:', error.message);
