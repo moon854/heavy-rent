@@ -11,6 +11,7 @@ const UserInfo = ({
   phoneStyle = {}
 }) => {
   const user = useSelector((state) => state.home.user);
+  const settings = useSelector((state) => state.home.settings || {});
   
   const displayName = user?.firstName || 'User';
   const displayEmail = user?.email || '';
@@ -28,7 +29,7 @@ const UserInfo = ({
         </Text>
       )}
       
-      {showPhone && displayPhone && (
+      {showPhone && settings.showPhoneNumber !== false && displayPhone && (
         <Text style={[styles.phone, phoneStyle]}>
           {displayPhone}
         </Text>
@@ -59,6 +60,8 @@ const styles = StyleSheet.create({
 });
 
 export default UserInfo;
+
+
 
 
 

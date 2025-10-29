@@ -79,6 +79,11 @@ const Profile = () => {
             marginTop: 10
           }}
         />
+        {user?.location || user?.address ? (
+          <Text style={{ color: colors.textInverse, marginTop: 6, opacity: 0.9 }}>
+            📍 {user?.location || user?.address}
+          </Text>
+        ) : null}
       </View>
 
       {/* Menu Items */}

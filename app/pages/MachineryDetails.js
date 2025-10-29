@@ -62,6 +62,13 @@ const MachineryDetails = ({ navigation, route }) => {
     });
   };
 
+  const goToOwnerProfile = () => {
+    navigation.navigate("OwnerProfile", {
+      ownerId: machinery?.ownerId,
+      ownerName: machinery?.ownerName || 'Owner'
+    });
+  };
+
   const handleEditAd = () => {
     navigation.navigate("AdForm", { 
       editMode: true, 
@@ -342,19 +349,14 @@ const MachineryDetails = ({ navigation, route }) => {
               Security Deposit: Rs. {machinery.securityDeposit}
             </Text>
           )}
-          {machinery?.ownerName && (
+          {(machinery?.ownerName || machinery?.location) && (
             <Text style={{ fontSize: 14, color: '#666', marginBottom: 5 }}>
-              Posted by: {machinery.ownerName}
-            </Text>
-          )}
-          {machinery?.location && (
-            <Text style={{ fontSize: 12, color: '#999' }}>
-              Location: {machinery.location}
+              Posted by: {machinery?.ownerName || 'Owner'}{machinery?.location ? `  •  ${machinery.location}` : ''}
             </Text>
           )}
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
           {isOwner ? (
             // Owner buttons - Edit and Delete
             <>
@@ -395,7 +397,7 @@ const MachineryDetails = ({ navigation, route }) => {
           ) : (
             // Non-owner buttons - Chat and Request
             <>
-              <TouchableOpacity onPress={goToChat} style={{ flex: 1 }}>
+              <TouchableOpacity onPress={goToChat} style={{ flex: 1, marginRight: 8 }}>
                 <View
                   style={{
                     height: 45,
@@ -413,7 +415,7 @@ const MachineryDetails = ({ navigation, route }) => {
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={goToRForm} style={{ flex: 1 }}>
+              <TouchableOpacity onPress={goToRForm} style={{ flex: 1, marginRight: 8 }}>
                 <View
                   style={{
                     height: 45,
@@ -426,6 +428,34 @@ const MachineryDetails = ({ navigation, route }) => {
                 >
                   <Ionicons name="calendar-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
                   <Text style={{ fontSize: 14, color: '#fff', fontWeight: '600' }}>Rent</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={goToOwnerProfile} style={{ flex: 1 }}>
+                <View
+                  style={{
+                    height: 45,
+                    backgroundColor: '#EEF7FF',
+                    borderRadius: 10,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    borderWidth: 2,
+                    borderColor: '#47D6FF',
+                    paddingHorizontal: 8,
+                    maxWidth: '100%'
+                  }}
+                >
+                  <Ionicons name="person-circle-outline" size={18} color="#47D6FF" style={{ marginRight: 4 }} />
+                  <Text
+                    style={{ fontSize: 13, color: '#47D6FF', fontWeight: '600', flexShrink: 1 }}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    adjustsFontSizeToFit={true}
+                    minimumFontScale={0.85}
+                  >
+                    Owner Profile
+                  </Text>
                 </View>
               </TouchableOpacity>
             </>

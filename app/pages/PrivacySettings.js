@@ -120,14 +120,6 @@ const PrivacySettings = ({ navigation }) => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Profile Visibility</Text>
         <SettingItem
-          icon={<Ionicons name="eye-outline" size={24} color="#47D6FF" />}
-          title="Public Profile"
-          subtitle="Allow others to see your profile information"
-          showSwitch={true}
-          switchValue={settings.publicProfile !== false}
-          onSwitchChange={() => handleToggleSetting('publicProfile')}
-        />
-        <SettingItem
           icon={<Ionicons name="call-outline" size={24} color="#47D6FF" />}
           title="Show Phone Number"
           subtitle="Display your phone number on ads"
@@ -149,28 +141,12 @@ const PrivacySettings = ({ navigation }) => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Data Collection</Text>
         <SettingItem
-          icon={<Ionicons name="analytics-outline" size={24} color="#47D6FF" />}
-          title="Analytics & Usage Data"
-          subtitle="Help improve the app by sharing usage data"
-          showSwitch={true}
-          switchValue={settings.analyticsEnabled !== false}
-          onSwitchChange={() => handleToggleSetting('analyticsEnabled')}
-        />
-        <SettingItem
           icon={<Ionicons name="camera-outline" size={24} color="#47D6FF" />}
           title="Photo Access"
           subtitle="Allow access to photos for ad images"
           showSwitch={true}
           switchValue={settings.photoAccess !== false}
           onSwitchChange={() => handleToggleSetting('photoAccess')}
-        />
-        <SettingItem
-          icon={<Ionicons name="location-outline" size={24} color="#47D6FF" />}
-          title="Location Tracking"
-          subtitle="Track location for nearby ads"
-          showSwitch={true}
-          switchValue={settings.locationTracking !== false}
-          onSwitchChange={() => handleToggleSetting('locationTracking')}
         />
       </View>
 
@@ -179,7 +155,7 @@ const PrivacySettings = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Communication</Text>
         <SettingItem
           icon={<Ionicons name="mail-outline" size={24} color="#47D6FF" />}
-          title="Marketing Emails"
+          title="Emails"
           subtitle="Receive promotional emails and updates"
           showSwitch={true}
           switchValue={settings.marketingEmails === true}
@@ -187,39 +163,15 @@ const PrivacySettings = ({ navigation }) => {
         />
         <SettingItem
           icon={<Ionicons name="chatbubble-outline" size={24} color="#47D6FF" />}
-          title="SMS Messages"
+          title="SMS"
           subtitle="Receive SMS notifications and updates"
           showSwitch={true}
           switchValue={settings.smsMessages === true}
           onSwitchChange={() => handleToggleSetting('smsMessages')}
         />
-        <SettingItem
-          icon={<Ionicons name="call-outline" size={24} color="#47D6FF" />}
-          title="Phone Calls"
-          subtitle="Allow customer support to call you"
-          showSwitch={true}
-          switchValue={settings.phoneCalls === true}
-          onSwitchChange={() => handleToggleSetting('phoneCalls')}
-        />
       </View>
 
-      {/* Data Management */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Data Management</Text>
-        <SettingItem
-          icon={<Ionicons name="download-outline" size={24} color="#47D6FF" />}
-          title="Export My Data"
-          subtitle="Download all your data"
-          onPress={handleDataExport}
-        />
-        <SettingItem
-          icon={<Ionicons name="trash-outline" size={24} color="#ff4444" />}
-          title="Delete All Data"
-          subtitle="Permanently delete all your data"
-          onPress={handleDataDeletion}
-          isDestructive={true}
-        />
-      </View>
+      {/* Data Management - removed as per requirement */}
 
       {/* Legal */}
       <View style={styles.section}>

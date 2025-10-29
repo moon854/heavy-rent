@@ -240,7 +240,7 @@ const AdForm = ({ navigation, route }) => {
         ownerId: user.uid || user.id,
         userId: user.uid || user.id, // Also save as userId for MyAds page compatibility
         ownerName: formData.fullName || `${user.firstName || ''} ${user.lastName || ''}`,
-        ownerPhone: formData.phone,
+        ownerPhone: settings.showPhoneNumber !== false ? formData.phone : '',
         ownerCompany: formData.company,
         ownerCNIC: formData.cnic,
         location: formData.location || formData.address,
@@ -598,9 +598,11 @@ const AdForm = ({ navigation, route }) => {
           <Text style={{ marginLeft: 10 }}>
             🏙️ City: <Text style={{ fontWeight: '600' }}>{formData.location || 'Not set'}</Text>
           </Text>
-          <Text style={{ marginLeft: 10 }}>
-            📞 Phone: {formData.phone || 'Not set'}
-          </Text>
+          {settings.showPhoneNumber !== false && (
+            <Text style={{ marginLeft: 10 }}>
+              📞 Phone: {formData.phone || 'Not set'}
+            </Text>
+          )}
           <Text style={{ marginLeft: 10 }}>
             🏢 Company: {formData.company || 'Not set'}
           </Text>

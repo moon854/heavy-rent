@@ -126,14 +126,9 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
                     Security: Rs. {item.securityDeposit}
                   </Text>
                 )}
-                {item.ownerName && (
+                {(item.ownerName || item.location) && (
                   <Text style={{ fontSize: 12, color: '#999', fontStyle: 'italic', marginBottom: 2 }}>
-                    Posted by: {item.ownerName}
-                  </Text>
-                )}
-                {item.location && (
-                  <Text style={{ fontSize: 11, color: '#bbb' }}>
-                    📍 {item.location}
+                    Posted by: {item.ownerName || 'Owner'}{item.location ? `  •  ${item.location}` : ''}
                   </Text>
                 )}
               </View>
