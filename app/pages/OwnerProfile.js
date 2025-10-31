@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSelector } from 'react-redux';
 import { getAllData, getDataById } from '../Helper/firebaseHelper';
 
 const OwnerProfile = ({ navigation, route }) => {
@@ -8,6 +9,7 @@ const OwnerProfile = ({ navigation, route }) => {
   const [ads, setAds] = useState([]);
   const [ownerUser, setOwnerUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const viewerSettings = useSelector((state) => state?.home?.settings) || {};
 
   useEffect(() => {
     const fetchOwnerAds = async () => {
@@ -63,6 +65,9 @@ const OwnerProfile = ({ navigation, route }) => {
               : (ownerName || 'Owner')}
           </Text>
           {(() => {
+            // Respect OWNER's preference (not the viewer's)
+            const ownerAllowsLocation = ownerUser?.settings?.showLocation !== false;
+            if (!ownerAllowsLocation) return null;
             const displayLocation = ownerUser?.location || ownerUser?.address || ads?.[0]?.location;
             if (!displayLocation) return null;
             return (
@@ -95,7 +100,7 @@ const OwnerProfile = ({ navigation, route }) => {
               <View style={{ flex: 1, justifyContent: 'center' }}>
                 <Text style={{ fontSize: 16, fontWeight: '600' }}>{item.name}</Text>
                 <Text style={{ fontSize: 14, color: '#47D6FF', fontWeight: '600', marginTop: 2 }}>${item.price}/{item.priceUnit}</Text>
-                {item.location && (
+                {ownerUser?.settings?.showLocation !== false && item.location && (
                   <Text style={{ fontSize: 11, color: '#999', marginTop: 2 }}>📍 {item.location}</Text>
                 )}
               </View>

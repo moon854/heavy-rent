@@ -234,22 +234,6 @@ const NotificationSettings = ({ navigation }) => {
           switchValue={settings.messageNotification !== false}
           onSwitchChange={() => handleToggleSetting('messageNotification')}
         />
-        <SettingItem
-          icon={<Ionicons name="mail-outline" size={24} color="#47D6FF" />}
-          title="Email Notifications"
-          subtitle="Receive notifications via email"
-          showSwitch={true}
-          switchValue={settings.emailNotification === true}
-          onSwitchChange={() => handleToggleSetting('emailNotification')}
-        />
-        <SettingItem
-          icon={<Ionicons name="chatbubble-outline" size={24} color="#47D6FF" />}
-          title="SMS Notifications"
-          subtitle="Receive notifications via SMS"
-          showSwitch={true}
-          switchValue={settings.smsNotification === true}
-          onSwitchChange={() => handleToggleSetting('smsNotification')}
-        />
       </View>
 
       {/* Payment Notifications */}

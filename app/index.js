@@ -16,6 +16,8 @@ import Notifications from './pages/Notifications';
 import Payment from './pages/Payment';
 import ProfileEdit from './pages/ProfileEdit';
 import PrivacySettings from './pages/PrivacySettings';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import RentalEstimation from './pages/RentalEstimation';
 import RenterForm from './pages/RenterForm';
 import Settings from './pages/Settings';
@@ -71,6 +73,8 @@ function RenderStack() {
         <Stack.Screen name="Settings" component={Settings} />
         <Stack.Screen name="Notifications" component={Notifications} />
         <Stack.Screen name="PrivacySettings" component={PrivacySettings} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+      <Stack.Screen name="TermsOfService" component={TermsOfService} />
         <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
         <Stack.Screen name="NotificationTest" component={NotificationTest} />
         <Stack.Screen name="ThemeSettings" component={ThemeSettings} />

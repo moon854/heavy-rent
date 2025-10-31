@@ -2,15 +2,45 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
-import { toggleSetting } from '../redux/Slices/HomeDataSlice';
+import { toggleSetting, setUser } from '../redux/Slices/HomeDataSlice';
+import { updateData } from '../Helper/firebaseHelper';
 
 const PrivacySettings = ({ navigation }) => {
   const homeState = useSelector((state) => state?.home) || {};
   const settings = homeState.settings || {};
   const dispatch = useDispatch();
 
-  const handleToggleSetting = (settingName) => {
+  const handleToggleSetting = async (settingName) => {
+    const currentUserId = homeState?.user?.uid || homeState?.user?.id;
+    const currentUser = homeState?.user || {};
+
+    // Determine current and next value from effective source
+    const currentValue = (currentUser?.settings?.[settingName] !== undefined)
+      ? currentUser.settings[settingName]
+      : homeState?.settings?.[settingName];
+    const newValue = !currentValue;
+
+    // Update local Redux settings immediately for responsive UI
     dispatch(toggleSetting(settingName));
+
+    // Also mirror into user.settings so UI stays consistent with owner preference
+    try {
+      const nextUser = {
+        ...currentUser,
+        settings: { ...(currentUser.settings || {}), [settingName]: newValue }
+      };
+      dispatch(setUser(nextUser));
+    } catch {}
+
+    // Persist to Firestore for owner privacy controls
+    try {
+      if (currentUserId && settingName === 'showLocation') {
+        await updateData('users', currentUserId, { ['settings.showLocation']: newValue });
+      }
+    } catch (e) {
+      // Non-blocking; privacy still works locally even if persistence fails
+      console.log('Failed to persist privacy setting:', settingName, e?.message);
+    }
   };
 
   const handleDataExport = () => {
@@ -61,19 +91,11 @@ const PrivacySettings = ({ navigation }) => {
   };
 
   const handlePrivacyPolicy = () => {
-    Alert.alert(
-      'Privacy Policy',
-      'Our Privacy Policy explains how we collect, use, and protect your information. You can view the full policy at: https://heavyrent.com/privacy',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('PrivacyPolicy');
   };
 
   const handleTermsOfService = () => {
-    Alert.alert(
-      'Terms of Service',
-      'Our Terms of Service outline the rules and regulations for using Rent-To-Build. You can view the full terms at: https://heavyrent.com/terms',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('TermsOfService');
   };
 
   const SettingItem = ({ icon, title, subtitle, onPress, showSwitch = false, switchValue = false, onSwitchChange, isDestructive = false }) => (
@@ -120,56 +142,20 @@ const PrivacySettings = ({ navigation }) => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Profile Visibility</Text>
         <SettingItem
-          icon={<Ionicons name="call-outline" size={24} color="#47D6FF" />}
-          title="Show Phone Number"
-          subtitle="Display your phone number on ads"
-          showSwitch={true}
-          switchValue={settings.showPhoneNumber !== false}
-          onSwitchChange={() => handleToggleSetting('showPhoneNumber')}
-        />
-        <SettingItem
           icon={<Ionicons name="location-outline" size={24} color="#47D6FF" />}
           title="Show Location"
           subtitle="Display your location on ads"
           showSwitch={true}
-          switchValue={settings.showLocation !== false}
+          switchValue={(homeState?.user?.settings?.showLocation !== undefined)
+            ? homeState.user.settings.showLocation
+            : settings.showLocation !== false}
           onSwitchChange={() => handleToggleSetting('showLocation')}
         />
       </View>
 
-      {/* Data Collection */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Data Collection</Text>
-        <SettingItem
-          icon={<Ionicons name="camera-outline" size={24} color="#47D6FF" />}
-          title="Photo Access"
-          subtitle="Allow access to photos for ad images"
-          showSwitch={true}
-          switchValue={settings.photoAccess !== false}
-          onSwitchChange={() => handleToggleSetting('photoAccess')}
-        />
-      </View>
+      
 
-      {/* Communication */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Communication</Text>
-        <SettingItem
-          icon={<Ionicons name="mail-outline" size={24} color="#47D6FF" />}
-          title="Emails"
-          subtitle="Receive promotional emails and updates"
-          showSwitch={true}
-          switchValue={settings.marketingEmails === true}
-          onSwitchChange={() => handleToggleSetting('marketingEmails')}
-        />
-        <SettingItem
-          icon={<Ionicons name="chatbubble-outline" size={24} color="#47D6FF" />}
-          title="SMS"
-          subtitle="Receive SMS notifications and updates"
-          showSwitch={true}
-          switchValue={settings.smsMessages === true}
-          onSwitchChange={() => handleToggleSetting('smsMessages')}
-        />
-      </View>
+      
 
       {/* Data Management - removed as per requirement */}
 

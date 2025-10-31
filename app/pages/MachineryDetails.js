@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image, ScrollView, Text, TouchableOpacity, View, Modal, Dimensions, Alert } from 'react-native';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { deleteData } from '../Helper/firebaseHelper';
+import { deleteData, getDataById } from '../Helper/firebaseHelper';
 
 const MachineryDetails = ({ navigation, route }) => {
   const { machinery } = route.params || {};
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const user = useSelector((state) => state?.home?.user) || {};
+  const settings = useSelector((state) => state?.home?.settings) || {};
+  const [ownerAllowsLocation, setOwnerAllowsLocation] = useState(true);
   
   // Debug user data
   console.log('Current user data:', {
@@ -68,6 +70,25 @@ const MachineryDetails = ({ navigation, route }) => {
       ownerName: machinery?.ownerName || 'Owner'
     });
   };
+
+  // Load owner's privacy for location visibility
+  useEffect(() => {
+    let isActive = true;
+    const loadOwnerPref = async () => {
+      try {
+        if (!machinery?.ownerId) return;
+        const owner = await getDataById('users', machinery.ownerId);
+        if (!isActive) return;
+        const allow = owner?.settings?.showLocation !== false;
+        setOwnerAllowsLocation(allow);
+      } catch (e) {
+        // Default to showing to avoid hiding by error
+        setOwnerAllowsLocation(true);
+      }
+    };
+    loadOwnerPref();
+    return () => { isActive = false; };
+  }, [machinery?.ownerId]);
 
   const handleEditAd = () => {
     navigation.navigate("AdForm", { 
@@ -349,9 +370,9 @@ const MachineryDetails = ({ navigation, route }) => {
               Security Deposit: Rs. {machinery.securityDeposit}
             </Text>
           )}
-          {(machinery?.ownerName || machinery?.location) && (
+          {(machinery?.ownerName || (ownerAllowsLocation && machinery?.location)) && (
             <Text style={{ fontSize: 14, color: '#666', marginBottom: 5 }}>
-              Posted by: {machinery?.ownerName || 'Owner'}{machinery?.location ? `  •  ${machinery.location}` : ''}
+              Posted by: {machinery?.ownerName || 'Owner'}{ownerAllowsLocation && machinery?.location ? `  •  ${machinery.location}` : ''}
             </Text>
           )}
         </View>
