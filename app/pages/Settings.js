@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet, ScrollView } f
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import { refreshUser, toggleSetting } from '../redux/Slices/HomeDataSlice';
+import { refreshUser, toggleSetting, updateSettings } from '../redux/Slices/HomeDataSlice';
+import notificationService from '../services/NotificationService';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const Settings = ({ navigation }) => {
@@ -39,6 +40,41 @@ const Settings = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error toggling setting:', error);
+    }
+  };
+
+  const handleTogglePushNotifications = async () => {
+    try {
+      const currentlyOn = !!settings.pushNotifications;
+      if (!currentlyOn) {
+        // Turn ON: request permission and register token
+        const status = await notificationService.requestNotificationPermissions();
+        if (status !== 'granted') {
+          Alert.alert(
+            'Permission Required',
+            'Enable notifications in system settings to receive alerts.'
+          );
+          // Ensure state remains OFF
+          dispatch(updateSettings({ pushNotifications: false }));
+          return;
+        }
+        const token = await notificationService.registerForPushNotificationsAsync();
+        if (!token) {
+          // Token may be null in Expo Go or if something failed; still mark on for local notifications
+          console.log('Push token not available; local notifications will still work.');
+        }
+        dispatch(updateSettings({ pushNotifications: true }));
+        Alert.alert('Notifications Enabled', 'You will receive push notifications.');
+      } else {
+        // Turn OFF: cancel scheduled notifications locally
+        try {
+          await notificationService.cancelAllNotifications();
+        } catch {}
+        dispatch(updateSettings({ pushNotifications: false }));
+      }
+    } catch (error) {
+      console.error('Push notifications toggle error:', error);
+      Alert.alert('Error', 'Could not update push notifications setting.');
     }
   };
 
@@ -81,7 +117,7 @@ const Settings = ({ navigation }) => {
   const handleHelpSupport = () => {
     Alert.alert(
       'Help & Support',
-      'For support, please contact:\n\nEmail: support@heavyrent.com\nPhone: +1-800-HEAVY-RENT\n\nWe are here to help!',
+      'For support, please contact:\n\nEmail: amaarkhann77@gmail.com\nPhone: +92 327 749 0073\n\nWe are here to help!',
       [{ text: 'OK' }]
     );
   };
@@ -257,18 +293,8 @@ const Settings = ({ navigation }) => {
           subtitle="Manage your privacy preferences"
           onPress={handlePrivacySettings}
         />
-        <SettingItem
-          icon={<Ionicons name="notifications-outline" size={24} color="#47D6FF" />}
-          title="Notification Settings"
-          subtitle="Customize your notification preferences"
-          onPress={handleNotificationSettings}
-        />
-        <SettingItem
-          icon={<Ionicons name="color-palette-outline" size={24} color="#47D6FF" />}
-          title="Theme Settings"
-          subtitle="Customize appearance and themes"
-          onPress={handleThemeSettings}
-        />
+        {/* Notification Settings entry removed as requested */}
+        {/* Theme Settings entry removed as requested */}
       </View>
 
       {/* Notification Settings */}
@@ -280,24 +306,9 @@ const Settings = ({ navigation }) => {
           subtitle="Receive notifications on your device"
           showSwitch={true}
           switchValue={settings.pushNotifications}
-          onSwitchChange={() => handleToggleSetting('pushNotifications')}
+          onSwitchChange={handleTogglePushNotifications}
         />
-        <SettingItem
-          icon={<Ionicons name="mail-outline" size={24} color="#47D6FF" />}
-          title="Email Notifications"
-          subtitle="Receive notifications via email"
-          showSwitch={true}
-          switchValue={settings.emailNotifications}
-          onSwitchChange={() => handleToggleSetting('emailNotifications')}
-        />
-        <SettingItem
-          icon={<Ionicons name="chatbubble-outline" size={24} color="#47D6FF" />}
-          title="SMS Notifications"
-          subtitle="Receive notifications via SMS"
-          showSwitch={true}
-          switchValue={settings.smsNotifications}
-          onSwitchChange={() => handleToggleSetting('smsNotifications')}
-        />
+        {/* Email and SMS notification toggles removed as requested */}
       </View>
 
       {/* App Settings */}
@@ -317,49 +328,13 @@ const Settings = ({ navigation }) => {
             }
           }}
         />
-        <SettingItem
-          icon={<Ionicons name="volume-high-outline" size={24} color="#47D6FF" />}
-          title="Sound"
-          subtitle="Enable app sounds"
-          showSwitch={true}
-          switchValue={settings.soundEnabled}
-          onSwitchChange={() => handleToggleSetting('soundEnabled')}
-        />
-        <SettingItem
-          icon={<Ionicons name="phone-portrait-outline" size={24} color="#47D6FF" />}
-          title="Vibration"
-          subtitle="Enable haptic feedback"
-          showSwitch={true}
-          switchValue={settings.vibrationEnabled}
-          onSwitchChange={() => handleToggleSetting('vibrationEnabled')}
-        />
+        {/* Sound and Vibration toggles removed as requested */}
       </View>
 
       {/* Data & Privacy */}
       <View style={dynamicStyles.section}>
         <Text style={dynamicStyles.sectionTitle}>Data & Privacy</Text>
-        <SettingItem
-          icon={<Ionicons name="location-outline" size={24} color="#47D6FF" />}
-          title="Location Services"
-          subtitle="Allow location access for better service"
-          showSwitch={true}
-          switchValue={settings.locationServices}
-          onSwitchChange={() => handleToggleSetting('locationServices')}
-        />
-        <SettingItem
-          icon={<Ionicons name="sync-outline" size={24} color="#47D6FF" />}
-          title="Auto Sync"
-          subtitle="Automatically sync your data"
-          showSwitch={true}
-          switchValue={settings.autoSync}
-          onSwitchChange={() => handleToggleSetting('autoSync')}
-        />
-        <SettingItem
-          icon={<Ionicons name="folder-outline" size={24} color="#47D6FF" />}
-          title="Data Management"
-          subtitle="Manage your stored data"
-          onPress={handleDataManagement}
-        />
+        {/* Location Services, Auto Sync, and Data Management removed as requested */}
       </View>
 
       {/* Support */}

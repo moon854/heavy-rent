@@ -16,33 +16,12 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-try {
-    var app = initializeApp(firebaseConfig);
-    console.log('Firebase initialized successfully');
-} catch (error) {
-    console.error('Error initializing Firebase:', error);
-    // Try to continue with a fallback configuration
-    try {
-        var app = initializeApp(firebaseConfig, 'fallback');
-        console.log('Firebase initialized with fallback config');
-    } catch (fallbackError) {
-        console.error('Fallback Firebase initialization also failed:', fallbackError);
-    }
-}
-// const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+console.log('Firebase initialized successfully');
 
-// Firebase Services
-let auth, db;
-try {
-    auth = getAuth(app);
-    db = getFirestore(app);
-    console.log('Firebase services initialized successfully');
-} catch (error) {
-    console.error('Error initializing Firebase services:', error);
-    // Create fallback services
-    auth = getAuth();
-    db = getFirestore();
-    console.log('Using fallback Firebase services');
-}
+// Initialize Firebase services
+const auth = getAuth(app);
+const db = getFirestore(app);
+console.log('Firebase services initialized successfully');
 
 export { auth, db };

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { LoginWithFBase, getDataById } from '../Helper/firebaseHelper';
+import { auth } from '../../firebase';
+import { signOut } from 'firebase/auth';
 import { setUser } from '../redux/Slices/HomeDataSlice';
 
 const Login = ({ navigation }) => {
@@ -20,6 +22,13 @@ const Login = ({ navigation }) => {
         )
     
         if (authUser?.uid) {
+          // Block login if email not verified
+          if (!authUser.emailVerified) {
+            alert('Please verify your email before logging in. We have sent a verification link to your email address.');
+            try { await signOut(auth); } catch {}
+            setIsLoading(false);
+            return;
+          }
           // Fetch complete user data from Firestore
           const userData = await getDataById("users", authUser.uid);
           if (userData) {
@@ -44,7 +53,7 @@ const Login = ({ navigation }) => {
     <View>
       <Text style={{ textAlign: 'center', marginTop: 50, fontWeight: 'bold', fontSize: 20 }}> Login Here</Text>
       <Text style={{ textAlign: 'center', marginTop: 20 }}> Welcome back, please log in again!</Text>
-      <TextInput onChangeText={setEmail} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Username" />
+      <TextInput onChangeText={setEmail} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Enter your Gmail or phone number" />
       <TextInput onChangeText={setPassword} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Password" />
       <Text style={{ color: "#47D6FF", paddingLeft: 40, marginTop: 20 }}> Forgot Your Password?</Text>
       <TouchableOpacity 

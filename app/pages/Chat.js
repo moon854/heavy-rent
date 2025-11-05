@@ -29,81 +29,101 @@ const Chat = ({ navigation, route }) => {
     `general_${userId}`);
 
   useEffect(() => {
+    if (!db || !chatId || !userId) {
+      console.error('❌ Missing required data:', { db: !!db, chatId, userId });
+      return;
+    }
+    
+    console.log('🔍 Starting chat listener for chatId:', chatId);
     
     // Listen to real-time messages (simplified query to avoid index requirement)
     const messagesRef = collection(db, 'chatMessages');
     const q = query(messagesRef);
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const chatMessages = [];
-      
-      console.log('🔍 Chat Debug - Current User ID:', userId);
-      console.log('🔍 Chat Debug - Current Chat ID:', chatId);
-      console.log('🔍 Chat Debug - Total messages in DB:', querySnapshot.size);
-      
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
+        const chatMessages = [];
         
-        // Log all messages for debugging
-        console.log('📨 Message:', {
-          id: doc.id,
-          chatId: data.chatId,
-          recipientId: data.recipientId,
-          type: data.type,
-          senderType: data.senderType,
-          message: data.message?.substring(0, 50)
-        });
+        console.log('🔍 Chat Debug - Current User ID:', userId);
+        console.log('🔍 Chat Debug - Current Chat ID:', chatId);
+        console.log('🔍 Chat Debug - Total messages in DB:', querySnapshot.size);
         
-        // STRICT: Show messages ONLY for this specific chatId
-        if (data.chatId === chatId) {
-          console.log('✅ Message matched for this chat!');
-          chatMessages.push({
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          
+          // Log all messages for debugging
+          console.log('📨 Message:', {
             id: doc.id,
-            ...data
+            chatId: data.chatId,
+            recipientId: data.recipientId,
+            type: data.type,
+            senderType: data.senderType,
+            message: data.message?.substring(0, 50)
           });
-        }
-      });
-      
-      console.log('💬 Total messages to display:', chatMessages.length);
-      
-      // Sort messages by creation time (client-side)
-      chatMessages.sort((a, b) => {
-        const aTime = a.createdAt?.toDate?.() || new Date(0);
-        const bTime = b.createdAt?.toDate?.() || new Date(0);
-        return aTime.getTime() - bTime.getTime();
-      });
-      
-      setMessages(chatMessages);
-      setLoading(false);
-
-      // Mark admin messages as read
-      const unreadAdminMessages = chatMessages.filter(
-        msg => msg.recipientId === userId && msg.senderType === 'admin' && msg.status !== 'read'
-      );
-
-      if (unreadAdminMessages.length > 0) {
-        // Mark messages as read in background
-        unreadAdminMessages.forEach(async (msg) => {
-          try {
-            await updateDoc(doc(db, 'chatMessages', msg.id), {
-              status: 'read',
-              readAt: serverTimestamp()
+          
+          // STRICT: Show messages ONLY for this specific chatId
+          if (data.chatId === chatId) {
+            console.log('✅ Message matched for this chat!');
+            chatMessages.push({
+              id: doc.id,
+              ...data
             });
-          } catch (error) {
-            console.error('Error marking message as read:', error);
           }
         });
+        
+        console.log('💬 Total messages to display:', chatMessages.length);
+        
+        // Sort messages by creation time (client-side)
+        chatMessages.sort((a, b) => {
+          const aTime = a.createdAt?.toDate?.() || new Date(0);
+          const bTime = b.createdAt?.toDate?.() || new Date(0);
+          return aTime.getTime() - bTime.getTime();
+        });
+        
+        setMessages(chatMessages);
+        setLoading(false);
+
+        // Mark admin messages as read
+        const unreadAdminMessages = chatMessages.filter(
+          msg => msg.recipientId === userId && msg.senderType === 'admin' && msg.status !== 'read'
+        );
+
+        if (unreadAdminMessages.length > 0) {
+          // Mark messages as read in background
+          unreadAdminMessages.forEach(async (msg) => {
+            try {
+              await updateDoc(doc(db, 'chatMessages', msg.id), {
+                status: 'read',
+                readAt: serverTimestamp()
+              });
+            } catch (error) {
+              console.error('Error marking message as read:', error);
+            }
+          });
+        }
+      },
+      (error) => {
+        console.error('❌ Error in onSnapshot:', error);
+        setLoading(false);
       }
-    });
+    );
 
     return () => unsubscribe();
-  }, [chatId]);
+  }, [chatId, userId]);
 
   const sendMessage = async () => {
     if (!message.trim()) {
       Alert.alert('Error', 'Please enter a message');
       return;
     }
+
+    if (!db || !chatId || !userId) {
+      console.error('❌ Cannot send message - missing data:', { db: !!db, chatId, userId });
+      Alert.alert('Error', 'Unable to send message. Please refresh the app.');
+      return;
+    }
+
+    console.log('📤 Sending message with data:', { chatId, userId, message: message.trim() });
 
     try {
       const messageData = {
@@ -124,7 +144,8 @@ const Chat = ({ navigation, route }) => {
         status: 'sent'
       };
 
-      await addDoc(collection(db, 'chatMessages'), messageData);
+      const docRef = await addDoc(collection(db, 'chatMessages'), messageData);
+      console.log('✅ Message sent successfully with ID:', docRef.id);
       
       // Send notification to admin
       const machineryDetails = machinery ? {
@@ -144,10 +165,11 @@ const Chat = ({ navigation, route }) => {
         machineryDetails
       );
       
+      console.log('✅ Notification sent to admin');
       setMessage("");
     } catch (error) {
-      console.error('Error sending message:', error);
-      Alert.alert('Error', 'Failed to send message. Please try again.');
+      console.error('❌ Error sending message:', error);
+      Alert.alert('Error', `Failed to send message: ${error.message}`);
     }
   }
 

@@ -6,7 +6,8 @@ import {
     signOut,
     updatePassword,
     reauthenticateWithCredential,
-    EmailAuthProvider
+    EmailAuthProvider,
+    sendEmailVerification
 } from "firebase/auth";
 import {
     addDoc, collection, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc
@@ -161,9 +162,16 @@ export const handleSignUp = async (email, password, extraData = {}) => {
             uid: user.uid,
             email: user.email,
             createdAt: new Date().toISOString(),
+            emailVerified: !!user.emailVerified,
             ...extraData, // merge additional data (e.g. name, phone, etc.)
         };
 
+        // Send email verification (non-blocking)
+        try {
+            await sendEmailVerification(user);
+        } catch (e) {
+            console.error('Error sending email verification:', e?.message);
+        }
 
         await setDoc(doc(db, "users", user.uid), userData);
 

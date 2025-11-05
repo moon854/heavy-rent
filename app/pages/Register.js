@@ -32,7 +32,7 @@ const Register = ({ navigation }) => {
 
   const goToRigester = async () => {
 
-    if (firstName === ""  || email === "" || password === "" || confirmPassword === "" || imageUrl === "" || cnic === "") {
+    if (firstName === ""  || email === "" || phone === "" || password === "" || confirmPassword === "" || imageUrl === "" || cnic === "") {
       alert("Please fill all the fields")
       return
     }
@@ -53,7 +53,8 @@ const Register = ({ navigation }) => {
 
       if (user?.uid) {
         dispatch(setUser(user))
-        alert("Account created successfully!")
+        alert("Account created! Please verify your email from your inbox, then log in.")
+        navigation.navigate('Login')
       } else {
         alert("Error in sign up")
       }
@@ -125,7 +126,8 @@ const Register = ({ navigation }) => {
         </TouchableOpacity>
 
         <TextInput onChangeText={(e) => setFirstName(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Enter Your Name " />
-        <TextInput onChangeText={(e) => setEmail(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Your Email" />
+        <TextInput onChangeText={(e) => setEmail(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Your Email" keyboardType="email-address" autoCapitalize="none" />
+        <TextInput onChangeText={(e) => setPhone(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Phone Number" keyboardType="phone-pad" />
         <TextInput onChangeText={(e) => setCnic(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="CNIC (12345-1234567-1)" />
         <TextInput onChangeText={(e) => setPassword(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Password" />
         <TextInput onChangeText={(e) => setConfirmPassword(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Confirm Password" />

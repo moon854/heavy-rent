@@ -97,3 +97,9 @@ const TermsOfService = ({ navigation }) => {
 export default TermsOfService;
 
 
+
+
+
+
+
+
