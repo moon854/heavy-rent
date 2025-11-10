@@ -15,11 +15,27 @@ class AppNotificationManager {
   }
 
   // Initialize notifications when app starts
-  async initialize() {
-    if (this.isInitialized) return;
+  async initialize(forceReinit = false) {
+    // Allow re-initialization if user logs in after app start
+    if (this.isInitialized && !forceReinit) {
+      console.log('Notification system already initialized, skipping...');
+      // But still check if user notifications need to be set up
+      await this.setupUserNotifications();
+      return;
+    }
 
     try {
       console.log('Initializing notification system...');
+      
+      // Clean up existing subscriptions if re-initializing
+      if (forceReinit && this.unsubscribeUserNotifications) {
+        try {
+          this.unsubscribeUserNotifications();
+          this.unsubscribeUserNotifications = null;
+        } catch (cleanupError) {
+          console.log('Error cleaning up old notifications:', cleanupError?.message);
+        }
+      }
       
       // Register for push notifications
       const token = await notificationService.registerForPushNotificationsAsync();
@@ -32,44 +48,19 @@ class AppNotificationManager {
         console.log('Push notification token not available, using local notifications only');
       }
 
-      // Set up notification listeners
-      try {
-        notificationService.setupNotificationListeners();
-      } catch (listenerError) {
-        console.log('Notification listeners setup failed:', listenerError.message);
-        // Continue without listeners
+      // Set up notification listeners (only once)
+      if (!this.notificationListenersSetup) {
+        try {
+          notificationService.setupNotificationListeners();
+          this.notificationListenersSetup = true;
+        } catch (listenerError) {
+          console.log('Notification listeners setup failed:', listenerError.message);
+          // Continue without listeners
+        }
       }
       
-      // Subscribe to user notifications and fire local notifications on new unread items
-      try {
-        const state = store.getState();
-        const user = state?.home?.user;
-        const userId = user?.uid || user?.id;
-        if (userId) {
-          let lastIds = new Set();
-          this.unsubscribeUserNotifications = UserNotificationService.subscribeToNotifications(userId, async (list) => {
-            // Build a set of current IDs
-            const currentIds = new Set(list.map(n => n.id + ':' + (n.__collection || 'notifications')));
-            // Find newly arrived unread notifications
-            const newUnread = list.filter(n => n.status === 'unread' && !lastIds.has(n.id + ':' + (n.__collection || 'notifications')));
-            for (const n of newUnread) {
-              const title = n.title || 'New Notification';
-              const body = n.message || '';
-              const data = { 
-                type: n.type || 'notification', 
-                notificationId: n.id, 
-                chatId: n.chatId, 
-                __collection: n.__collection,
-                machineryDetails: n.machineryDetails || null
-              };
-              await notificationService.sendLocalNotification(title, body, data);
-            }
-            lastIds = currentIds;
-          });
-        }
-      } catch (subErr) {
-        console.log('User notifications subscription failed:', subErr?.message);
-      }
+      // Setup user notifications
+      await this.setupUserNotifications();
 
       this.isInitialized = true;
       console.log('Notification system initialized successfully');
@@ -78,6 +69,66 @@ class AppNotificationManager {
       console.error('Failed to initialize notification system:', error);
       // Continue with local notifications even if push notifications fail
       this.isInitialized = true;
+    }
+  }
+
+  // Setup user notifications subscription
+  async setupUserNotifications() {
+    try {
+      const state = store.getState();
+      const user = state?.home?.user;
+      const userId = user?.uid || user?.id;
+      
+      if (!userId) {
+        console.log('No user ID available for notification subscription');
+        return;
+      }
+
+      // Clean up existing subscription if any
+      if (this.unsubscribeUserNotifications) {
+        try {
+          this.unsubscribeUserNotifications();
+        } catch (cleanupError) {
+          console.log('Error cleaning up user notifications:', cleanupError?.message);
+        }
+      }
+
+      console.log('Setting up user notification subscription for userId:', userId);
+      let lastIds = new Set();
+      
+      this.unsubscribeUserNotifications = UserNotificationService.subscribeToNotifications(userId, async (list) => {
+        try {
+          // Build a set of current IDs
+          const currentIds = new Set(list.map(n => n.id + ':' + (n.__collection || 'notifications')));
+          // Find newly arrived unread notifications
+          const newUnread = list.filter(n => n.status === 'unread' && !lastIds.has(n.id + ':' + (n.__collection || 'notifications')));
+          
+          console.log(`Found ${newUnread.length} new unread notifications`);
+          
+          for (const n of newUnread) {
+            const title = n.title || 'New Notification';
+            const body = n.message || n.body || '';
+            const data = { 
+              type: n.type || 'notification', 
+              notificationId: n.id, 
+              chatId: n.chatId, 
+              __collection: n.__collection,
+              machineryDetails: n.machineryDetails || null
+            };
+            
+            console.log('Sending local notification:', title, body);
+            await notificationService.sendLocalNotification(title, body, data);
+          }
+          
+          lastIds = currentIds;
+        } catch (notificationError) {
+          console.error('Error processing user notifications:', notificationError);
+        }
+      });
+      
+      console.log('User notification subscription setup completed');
+    } catch (subErr) {
+      console.error('User notifications subscription failed:', subErr?.message);
     }
   }
 

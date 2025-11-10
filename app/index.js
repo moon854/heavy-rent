@@ -44,6 +44,17 @@ const Stack = createNativeStackNavigator();
 function RenderStack() {
   const user = useSelector((state) => state.home.user);
 
+  // Re-initialize notification system when user logs in
+  React.useEffect(() => {
+    if (user?.uid) {
+      console.log('User logged in, re-initializing notification system for user:', user.uid);
+      // Force re-initialize notifications when user is available
+      appNotificationManager.initialize(true).catch(error => {
+        console.error('Error re-initializing notifications:', error);
+      });
+    }
+  }, [user?.uid]);
+
   if (!user?.uid ) {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>

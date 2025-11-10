@@ -4,7 +4,7 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useState } from 'react';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { handleSignUp, uploadImageToCloudinary } from '../Helper/firebaseHelper';
+import { handleSignUp, uploadImageToCloudinary, resendVerificationEmail } from '../Helper/firebaseHelper';
 import { setUser } from '../redux/Slices/HomeDataSlice';
 
 import * as ImagePicker from 'expo-image-picker';
@@ -53,13 +53,21 @@ const Register = ({ navigation }) => {
 
       if (user?.uid) {
         dispatch(setUser(user))
-        alert("Account created! Please verify your email from your inbox, then log in.")
+        
+        // Check if verification email was sent
+        if (user.verificationEmailSent === false) {
+          alert(`Account created! However, there was an issue sending the verification email: ${user.verificationError || 'Unknown error'}. Please check your email settings or try logging in to resend the verification email.`)
+        } else {
+          alert("Account created successfully! A verification email has been sent to your inbox. Please check your email (including spam folder) and click the verification link, then log in.")
+        }
         navigation.navigate('Login')
       } else {
         alert("Error in sign up")
       }
     } catch (error) {
-      alert("Error in sign up")
+      console.error("Sign up error:", error);
+      const errorMessage = error?.message || "Error in sign up";
+      alert(`Sign up failed: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }

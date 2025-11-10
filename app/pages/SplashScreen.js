@@ -1,11 +1,22 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, StatusBar, Image } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
+import appNotificationManager from '../services/AppNotificationManager';
+import { useSelector } from 'react-redux';
 
 const SplashScreen = ({ navigation }) => {
   const { colors } = useTheme();
+  const user = useSelector((state) => state?.home?.user);
 
   useEffect(() => {
+    // Ensure notifications are initialized when user reaches splash screen
+    if (user?.uid) {
+      console.log('SplashScreen: User available, ensuring notifications are set up...');
+      appNotificationManager.initialize(true).catch(error => {
+        console.error('SplashScreen: Error initializing notifications:', error);
+      });
+    }
+
     // Show splash screen for 2.5 seconds (typical timing for most apps)
     // This gives enough time for the app to load while not being too long
     const timer = setTimeout(() => {
@@ -14,7 +25,7 @@ const SplashScreen = ({ navigation }) => {
     }, 2500);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, user?.uid]);
 
   return (
     <View style={styles.container}>
