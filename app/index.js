@@ -55,7 +55,11 @@ function RenderStack() {
     }
   }, [user?.uid]);
 
-  if (!user?.uid ) {
+  // Check if user exists and is verified
+  // User must be verified (either via email or admin verification) to access the app
+  const isUserVerified = user?.isVerified === true || user?.emailVerified === true;
+  
+  if (!user?.uid || !isUserVerified) {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />

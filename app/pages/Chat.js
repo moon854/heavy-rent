@@ -31,12 +31,16 @@ const Chat = ({ navigation, route }) => {
   useEffect(() => {
     if (!db || !chatId || !userId) {
       console.error('❌ Missing required data:', { db: !!db, chatId, userId });
+      // Note: Chats are stored in Firebase and persist across logout/login
+      // They will automatically reload when user logs back in with the same account
       return;
     }
     
     console.log('🔍 Starting chat listener for chatId:', chatId);
     
-    // Listen to real-time messages (simplified query to avoid index requirement)
+    // Listen to real-time messages
+    // Note: Chats persist in Firebase - they are never deleted on logout
+    // They will automatically reload when user logs back in
     const messagesRef = collection(db, 'chatMessages');
     const q = query(messagesRef);
 

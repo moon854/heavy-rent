@@ -18,10 +18,13 @@ const ChatList = ({ navigation }) => {
 
   useEffect(() => {
     if (!userId) {
+      // User not logged in - chats will persist in Firebase and reload when user logs back in
       return;
     }
 
-    // Listen to all chat messages for this user (simplified query to avoid index requirement)
+    // Listen to all chat messages for this user
+    // Note: Chats are stored in Firebase and persist across logout/login
+    // They will automatically reload when user logs back in with the same account
     const messagesQuery = query(
       collection(db, 'chatMessages')
     );
