@@ -9,19 +9,81 @@ import { setUser } from '../redux/Slices/HomeDataSlice';
 const Login = ({ navigation }) => {
 
   const dispatch = useDispatch();
-  const [email, setEmail] = useState("");
+  const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showResendOption, setShowResendOption] = useState(false);
   const [isResending, setIsResending] = useState(false);
-    const handleLoginWithEmail = async () => {
-      setIsLoading(true)
+
+  // Find user by phone number and get their email
+  const getUserEmailByPhone = async (phoneNumber) => {
+    try {
+      const { getDocs, collection, query, where } = await import('firebase/firestore');
+      const { db } = await import('../../firebase');
       
-      try {
-        const authUser = await LoginWithFBase(
-          email,
-          password,
-        )
+      // Format phone number (remove +92 if present, add if not)
+      let formattedPhone = phoneNumber.trim();
+      if (!formattedPhone.startsWith('+')) {
+        if (formattedPhone.startsWith('0')) {
+          formattedPhone = formattedPhone.substring(1);
+        }
+        formattedPhone = '+92' + formattedPhone;
+      }
+      
+      // Also check with original format
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('phone', '==', phoneNumber));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        return userDoc.data().email;
+      }
+      
+      // Try with formatted phone
+      const q2 = query(usersRef, where('phone', '==', formattedPhone));
+      const querySnapshot2 = await getDocs(q2);
+      
+      if (!querySnapshot2.empty) {
+        const userDoc = querySnapshot2.docs[0];
+        return userDoc.data().email;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error finding user by phone:', error);
+      return null;
+    }
+  };
+
+  const handleLoginWithEmail = async () => {
+    if (!emailOrPhone || !password) {
+      alert("Please enter your email/phone and password");
+      return;
+    }
+
+    setIsLoading(true)
+    
+    try {
+      // Check if input is email or phone number
+      const isEmail = emailOrPhone.includes('@');
+      let userEmail = emailOrPhone;
+      
+      // If it's a phone number, find user's email
+      if (!isEmail) {
+        const foundEmail = await getUserEmailByPhone(emailOrPhone);
+        if (!foundEmail) {
+          alert("No account found with this phone number. Please check your phone number or try logging in with email.");
+          setIsLoading(false);
+          return;
+        }
+        userEmail = foundEmail;
+      }
+
+      const authUser = await LoginWithFBase(
+        userEmail,
+        password,
+      )
     
         if (authUser?.uid) {
           // Fetch complete user data from Firestore first
@@ -34,9 +96,10 @@ const Login = ({ navigation }) => {
             return;
           }
 
-          // Check if user is verified either in Firebase Auth OR in Firestore (admin verified)
+          // Check if user is verified either in Firebase Auth OR in Firestore (admin verified) OR phone verified
           // If admin has verified user in Firestore (isVerified: true), allow login even if Firebase Auth email is not verified
-          const isVerified = authUser.emailVerified || userData.isVerified === true;
+          // Also allow login if phone is verified
+          const isVerified = authUser.emailVerified || userData.isVerified === true || userData.phoneVerified === true;
           
           if (!isVerified) {
             // Automatically try to resend verification email for old accounts
@@ -98,14 +161,27 @@ const Login = ({ navigation }) => {
     }
 
     const handleResendVerification = async () => {
-      if (!email || !password) {
-        alert("Please enter your email and password to resend verification email");
+      if (!emailOrPhone || !password) {
+        alert("Please enter your email/phone and password to resend verification email");
         return;
+      }
+
+      // Get email if phone number was entered
+      const isEmail = emailOrPhone.includes('@');
+      let userEmail = emailOrPhone;
+      
+      if (!isEmail) {
+        const foundEmail = await getUserEmailByPhone(emailOrPhone);
+        if (!foundEmail) {
+          alert("No account found with this phone number. Please use email to resend verification.");
+          return;
+        }
+        userEmail = foundEmail;
       }
 
       setIsResending(true);
       try {
-        await resendVerificationEmail(email, password);
+        await resendVerificationEmail(userEmail, password);
         alert("Verification email sent successfully! Please check your inbox (including spam folder).");
       } catch (error) {
         console.error("Resend verification error:", error);
@@ -123,11 +199,11 @@ const Login = ({ navigation }) => {
       <Text style={{ textAlign: 'center', marginTop: 50, fontWeight: 'bold', fontSize: 20 }}> Login Here</Text>
       <Text style={{ textAlign: 'center', marginTop: 20 }}> Welcome back, please log in again!</Text>
       <TextInput 
-        onChangeText={setEmail} 
-        value={email}
+        onChangeText={setEmailOrPhone} 
+        value={emailOrPhone}
         style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} 
-        placeholder="Enter your Email" 
-        keyboardType="email-address"
+        placeholder="Enter your Email or Phone Number" 
+        keyboardType="default"
         autoCapitalize="none"
       />
       <TextInput 
@@ -142,7 +218,7 @@ const Login = ({ navigation }) => {
       {showResendOption && (
         <TouchableOpacity 
           onPress={handleResendVerification}
-          disabled={isResending || !email || !password}
+          disabled={isResending || !emailOrPhone || !password}
           style={{ 
             marginTop: 20,
             padding: 10,
@@ -150,7 +226,7 @@ const Login = ({ navigation }) => {
           }}
         >
           <Text style={{ 
-            color: isResending || !email || !password ? "#ccc" : "#47D6FF", 
+            color: isResending || !emailOrPhone || !password ? "#ccc" : "#47D6FF", 
             textDecorationLine: 'underline',
             fontSize: 14
           }}>

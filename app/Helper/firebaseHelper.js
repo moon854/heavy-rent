@@ -7,7 +7,11 @@ import {
     updatePassword,
     reauthenticateWithCredential,
     EmailAuthProvider,
-    sendEmailVerification
+    sendEmailVerification,
+    RecaptchaVerifier,
+    signInWithPhoneNumber,
+    PhoneAuthProvider,
+    signInWithCredential
 } from "firebase/auth";
 import {
     addDoc, collection, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc
@@ -151,7 +155,7 @@ export const deleteData = async (collectionName, id) => {
 //--------------------------------
 
 // ✅ Sign Up
-export const handleSignUp = async (email, password, extraData = {}) => {
+export const handleSignUp = async (email, password, extraData = {}, sendEmailVerificationLink = true) => {
     try {
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -169,26 +173,29 @@ export const handleSignUp = async (email, password, extraData = {}) => {
         // Save user data first
         await setDoc(doc(db, "users", user.uid), userData);
 
-        // Send email verification with proper error handling
+        // Send email verification only if requested
         let verificationEmailSent = false;
         let verificationError = null;
-        try {
-            // For React Native, sendEmailVerification works without ActionCodeSettings
-            // The email will contain a link that opens in browser and redirects to app
-            // Note: User must be signed in to send verification email
-            await sendEmailVerification(user);
-            console.log('✅ Email verification sent successfully to:', user.email);
-            verificationEmailSent = true;
-        } catch (e) {
-            console.error('❌ Error sending email verification:', e?.message, e?.code);
-            verificationEmailSent = false;
-            // Provide user-friendly error messages
-            if (e?.code === 'auth/too-many-requests') {
-                verificationError = 'Too many requests. Please wait a few minutes before requesting another verification email.';
-            } else if (e?.code === 'auth/user-not-found') {
-                verificationError = 'User not found. Please try again.';
-            } else {
-                verificationError = e?.message || 'Failed to send verification email. Please try again later.';
+        
+        if (sendEmailVerificationLink) {
+            try {
+                // For React Native, sendEmailVerification works without ActionCodeSettings
+                // The email will contain a link that opens in browser and redirects to app
+                // Note: User must be signed in to send verification email
+                await sendEmailVerification(user);
+                console.log('✅ Email verification sent successfully to:', user.email);
+                verificationEmailSent = true;
+            } catch (e) {
+                console.error('❌ Error sending email verification:', e?.message, e?.code);
+                verificationEmailSent = false;
+                // Provide user-friendly error messages
+                if (e?.code === 'auth/too-many-requests') {
+                    verificationError = 'Too many requests. Please wait a few minutes before requesting another verification email.';
+                } else if (e?.code === 'auth/user-not-found') {
+                    verificationError = 'User not found. Please try again.';
+                } else {
+                    verificationError = e?.message || 'Failed to send verification email. Please try again later.';
+                }
             }
         }
 
@@ -340,6 +347,244 @@ export const resendVerificationEmail = async (email, password) => {
 
 
 
+
+// ✅ Send OTP to Phone Number
+export const sendPhoneOTP = async (phoneNumber) => {
+    try {
+        // Format phone number with country code if not present
+        let formattedPhone = phoneNumber.trim();
+        
+        // If phone doesn't start with +, assume it's a Pakistani number and add +92
+        if (!formattedPhone.startsWith('+')) {
+            // Remove any leading 0
+            if (formattedPhone.startsWith('0')) {
+                formattedPhone = formattedPhone.substring(1);
+            }
+            // Add Pakistan country code
+            formattedPhone = '+92' + formattedPhone;
+        }
+        
+        console.log('Sending OTP to phone:', formattedPhone);
+        
+        // Generate a 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Store phone verification request in Firestore with OTP
+        const verificationData = {
+            phoneNumber: formattedPhone,
+            otpCode: otpCode, // Store OTP for verification
+            createdAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes expiry
+            verified: false,
+            attempts: 0
+        };
+        
+        const { addDoc, collection } = await import('firebase/firestore');
+        const { db } = await import('../../firebase');
+        
+        const docRef = await addDoc(collection(db, 'phoneVerifications'), verificationData);
+        
+        // ============================================
+        // 🔴 IMPORTANT: SMS Service Integration Required
+        // ============================================
+        // Currently, OTP is only stored in Firestore but NOT sent via SMS
+        // You need to integrate one of the following SMS services:
+        //
+        // OPTION 1: Twilio (Recommended for Pakistan)
+        // 1. Sign up at https://www.twilio.com
+        // 2. Get Account SID and Auth Token
+        // 3. Install: npm install twilio
+        // 4. Uncomment and configure the code below:
+        /*
+        const twilio = require('twilio');
+        const client = twilio('YOUR_ACCOUNT_SID', 'YOUR_AUTH_TOKEN');
+        await client.messages.create({
+            body: `Your OTP code is: ${otpCode}. Valid for 10 minutes.`,
+            from: 'YOUR_TWILIO_PHONE_NUMBER', // e.g., '+1234567890'
+            to: formattedPhone
+        });
+        */
+        
+        // OPTION 2: Backend API (Recommended - More Secure)
+        // ============================================
+        // ✅ ACTIVE: Send SMS via Backend API
+        // ============================================
+        // IMPORTANT: 
+        // - For Android Emulator: use 'http://10.0.2.2:3000'
+        // - For iOS Simulator: use 'http://localhost:3000'
+        // - For Physical Device: use 'http://YOUR_COMPUTER_IP:3000' (e.g., 'http://192.168.1.100:3000')
+        // - For Production: use 'https://your-backend-api.com'
+        // 
+        // To find your computer's IP address:
+        // Windows: ipconfig (look for IPv4 Address)
+        // Mac/Linux: ifconfig (look for inet)
+        // Or use: https://whatismyipaddress.com/
+        
+        // ⚠️ CONFIGURE THIS URL BASED ON YOUR SETUP:
+        // Physical device ke liye computer ka Wi-Fi IP address use karein
+        const BACKEND_API_URL = __DEV__ 
+            ? 'http://10.89.67.96:3000'  // Your computer's Wi-Fi IP for physical device
+            : 'https://your-backend-api.com'; // Production URL
+        
+        // Alternative URLs:
+        // Android Emulator: 'http://10.0.2.2:3000'
+        // iOS Simulator: 'http://localhost:3000'
+        
+        try {
+            console.log(`📡 Attempting to send SMS via: ${BACKEND_API_URL}`);
+            
+            // Create AbortController for timeout (compatible with React Native)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                console.warn('⏱️ Request timeout after 30 seconds');
+            }, 30000); // 30 second timeout (increased for network delays)
+            
+            let response;
+            try {
+                response = await fetch(`${BACKEND_API_URL}/api/send-otp`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        phone: formattedPhone, 
+                        otp: otpCode
+                    }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId); // Clear timeout if request completes
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                throw fetchError;
+            }
+            
+            const result = await response.json();
+            
+            if (!response.ok || !result.success) {
+                console.error('❌ SMS API Error:', result.error || 'Failed to send SMS');
+                console.warn('⚠️ OTP is stored in Firestore. SMS was not sent. Check backend server.');
+                // Don't fail registration if SMS fails, but log it
+                // OTP is still stored in Firestore, user can verify manually
+            } else {
+                console.log('✅ SMS sent successfully via backend API');
+            }
+        } catch (smsError) {
+            // Handle different error types
+            if (smsError.name === 'AbortError' || smsError.message === 'Aborted') {
+                console.error('❌ SMS Request Timeout - Request took too long');
+                console.error('🔴 Possible causes:');
+                console.error('   1. Backend server is not running or not accessible');
+                console.error('   2. Network connectivity issue');
+                console.error('   3. Firewall blocking connection');
+                console.error('   4. Device and computer not on same network');
+                console.error(`   5. Backend URL might be wrong: ${BACKEND_API_URL}`);
+                console.error('\n💡 Troubleshooting:');
+                console.error('   - Check if backend server is running');
+                console.error('   - Verify phone and computer are on same WiFi');
+                console.error('   - Test backend URL in browser: ' + BACKEND_API_URL);
+            } else if (smsError.message?.includes('Network request failed') || smsError.name === 'TypeError') {
+                console.error('🔴 Network Error - Possible causes:');
+                console.error('   1. Backend server is not running');
+                console.error('   2. Wrong API URL (localhost won\'t work on physical device)');
+                console.error('   3. Firewall blocking connection');
+                console.error('   4. Device and computer not on same network');
+                console.error(`   Current URL: ${BACKEND_API_URL}`);
+                console.error('   💡 For physical device, use your computer\'s IP address instead of localhost');
+            } else {
+                console.error('❌ SMS sending error:', smsError.message || smsError);
+            }
+            
+            console.warn('⚠️ OTP is stored in Firestore but SMS was not sent.');
+            console.warn('⚠️ Check backend API server and URL configuration.');
+            // Don't fail registration if SMS fails, but log it
+        }
+        
+        // OPTION 3: Firebase Cloud Functions
+        // Create a Cloud Function that sends SMS using Twilio or other service
+        // Then call it from here:
+        /*
+        const functions = getFunctions();
+        const sendSMS = httpsCallable(functions, 'sendOTPSMS');
+        await sendSMS({ phone: formattedPhone, otp: otpCode });
+        */
+        
+        // OPTION 4: AWS SNS (If using AWS)
+        // Use AWS SDK to send SMS via SNS
+        
+        // ============================================
+        // 📝 Logging (for debugging)
+        // ============================================
+        console.log(`📱 OTP generated for ${formattedPhone} (Verification ID: ${docRef.id})`);
+        
+        return { 
+            success: true, 
+            verificationId: docRef.id,
+            phoneNumber: formattedPhone,
+            message: `OTP code has been sent to ${formattedPhone}. Please check your messages.`
+        };
+        
+    } catch (error) {
+        console.error("Error sending phone OTP:", error);
+        throw new Error(error?.message || "Failed to send OTP. Please try again.");
+    }
+};
+
+// ✅ Verify Phone OTP
+export const verifyPhoneOTP = async (verificationId, otpCode) => {
+    try {
+        if (!otpCode || otpCode.length !== 6) {
+            throw new Error('OTP code must be 6 digits');
+        }
+        
+        const { getDoc, doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../../firebase');
+        
+        const verificationDoc = await getDoc(doc(db, 'phoneVerifications', verificationId));
+        
+        if (!verificationDoc.exists()) {
+            throw new Error('Verification ID not found. Please request a new OTP.');
+        }
+        
+        const verificationData = verificationDoc.data();
+        
+        // Check if OTP has expired (10 minutes)
+        const expiresAt = new Date(verificationData.expiresAt);
+        if (new Date() > expiresAt) {
+            throw new Error('OTP code has expired. Please request a new one.');
+        }
+        
+        // Check if already verified
+        if (verificationData.verified) {
+            throw new Error('This phone number has already been verified.');
+        }
+        
+        // Check attempt limit (max 5 attempts)
+        if (verificationData.attempts >= 5) {
+            throw new Error('Too many verification attempts. Please request a new OTP.');
+        }
+        
+        // Verify OTP code
+        if (verificationData.otpCode === otpCode) {
+            // Update verification status
+            await updateDoc(doc(db, 'phoneVerifications', verificationId), {
+                verified: true,
+                verifiedAt: new Date().toISOString(),
+                attempts: (verificationData.attempts || 0) + 1
+            });
+            return { success: true, verified: true };
+        } else {
+            // Increment attempt count
+            await updateDoc(doc(db, 'phoneVerifications', verificationId), {
+                attempts: (verificationData.attempts || 0) + 1
+            });
+            throw new Error('Invalid OTP code. Please try again.');
+        }
+    } catch (error) {
+        console.error("Error verifying phone OTP:", error);
+        throw new Error(error?.message || "Failed to verify OTP. Please try again.");
+    }
+};
 
 export const uploadImageToCloudinary = async (imageUri) => {
     const CLOUD_NAME = "dwk8uftzt";

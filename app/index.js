@@ -33,6 +33,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { SafeAreaView } from 'react-native';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Verification from './pages/Verification';
 import { persistor, store } from './redux/store';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import appNotificationManager from './services/AppNotificationManager';
@@ -64,6 +65,7 @@ function RenderStack() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Verification" component={Verification} />
       </Stack.Navigator>
     );
   }
