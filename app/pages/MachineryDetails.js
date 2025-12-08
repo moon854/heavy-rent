@@ -315,37 +315,22 @@ const MachineryDetails = ({ navigation, route }) => {
       {/* Rental Policy */}
       <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 20, marginBottom: 10 }}>Rental Policy</Text>
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly' }}>
-        {machinery?.rentalPolicies?.map((policy, index) => (
-          <View
-            key={index}
-            style={{
-              borderWidth: 1,
-              borderColor: 'gray',
-              borderRadius: 8,
-              width: 170,
-              height: 50,
-              marginTop: 20,
-              justifyContent: 'center',
-              paddingHorizontal: 10,
-            }}
-          >
-            <Text style={{ fontSize: 12 }}>{policy}</Text>
+      <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
+        {machinery?.rentalPolicies && machinery.rentalPolicies.length > 0 ? (
+          <View style={{ backgroundColor: '#f8f9fa', borderRadius: 8, padding: 15 }}>
+            {machinery.rentalPolicies.map((policy, index) => (
+              policy && policy !== 'None' ? (
+                <View key={index} style={{ marginBottom: 10 }}>
+                  <Text style={{ fontSize: 14, lineHeight: 20, color: '#333' }}>
+                    {policy.startsWith('•') ? policy : `• ${policy}`}
+                  </Text>
+                </View>
+              ) : null
+            ))}
           </View>
-        )) || (
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: 'gray',
-              borderRadius: 8,
-              width: 170,
-              height: 50,
-              marginTop: 20,
-              justifyContent: 'center',
-              paddingHorizontal: 10,
-            }}
-          >
-            <Text style={{ fontSize: 12 }}>No rental policies specified</Text>
+        ) : (
+          <View style={{ backgroundColor: '#f8f9fa', borderRadius: 8, padding: 15 }}>
+            <Text style={{ fontSize: 14, color: '#666', fontStyle: 'italic' }}>No rental policies specified</Text>
           </View>
         )}
       </View>

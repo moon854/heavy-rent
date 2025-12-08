@@ -26,14 +26,14 @@ const AdForm = ({ navigation, route }) => {
     vehicleCondition: '',
     rentPerDay: '',
     securityDeposit: '',
-    power: '',
-    capacity: '',
-    torque: '',
+    specifications: '',
     rentalPolicy1: '',
     rentalPolicy2: '',
     rentalPolicy3: '',
     rentalPolicy4: ''
   });
+  const [phoneError, setPhoneError] = useState(false);
+  const [cnicError, setCnicError] = useState(false);
 
   const user = useSelector((state) => state?.home?.user) || {};
   const settings = useSelector((state) => state?.home?.settings) || {};
@@ -72,6 +72,11 @@ const AdForm = ({ navigation, route }) => {
         company: user.company || '',
         cnic: user.cnic || '',
       }));
+    } else {
+      // Set default policies even if no user data
+      setFormData(prev => ({
+        ...prev,
+      }));
     }
   };
 
@@ -87,13 +92,7 @@ const AdForm = ({ navigation, route }) => {
       vehicleCondition: adData.specifications?.condition || '',
       rentPerDay: adData.price || adData.rentPerDay || '',
       securityDeposit: adData.securityDeposit || '',
-      power: adData.specifications?.power || '',
-      capacity: adData.specifications?.capacity || '',
-      torque: adData.specifications?.torque || '',
-      rentalPolicy1: adData.rentalPolicies?.[0] || '',
-      rentalPolicy2: adData.rentalPolicies?.[1] || '',
-      rentalPolicy3: adData.rentalPolicies?.[2] || '',
-      rentalPolicy4: adData.rentalPolicies?.[3] || ''
+      specifications: adData.specifications?.description || adData.specifications?.power || adData.specifications?.capacity || adData.specifications?.torque || '',
     });
     
     // Set category
@@ -107,11 +106,79 @@ const AdForm = ({ navigation, route }) => {
     }
   };
 
+  // Function to format phone number in Pakistani domestic format (0 3XX XXXXXXX)
+  const formatPhoneNumber = (text) => {
+    // Remove all non-digit characters
+    const digits = text.replace(/\D/g, '');
+    
+    // Limit to 11 digits
+    const limitedDigits = digits.slice(0, 11);
+    
+    // Format: 0 3XX XXXXXXX
+    if (limitedDigits.length === 0) {
+      return '';
+    } else if (limitedDigits.length <= 1) {
+      return limitedDigits;
+    } else if (limitedDigits.length <= 4) {
+      return `${limitedDigits.slice(0, 1)} ${limitedDigits.slice(1)}`;
+    } else {
+      return `${limitedDigits.slice(0, 1)} ${limitedDigits.slice(1, 4)} ${limitedDigits.slice(4)}`;
+    }
+  };
+
+  // Function to format CNIC in Pakistani format (XXXXX-XXXXXXX-X)
+  const formatCNIC = (text) => {
+    // Remove all non-digit characters
+    const digits = text.replace(/\D/g, '');
+    
+    // Limit to 13 digits
+    const limitedDigits = digits.slice(0, 13);
+    
+    // Format: XXXXX-XXXXXXX-X
+    if (limitedDigits.length <= 5) {
+      return limitedDigits;
+    } else if (limitedDigits.length <= 12) {
+      return `${limitedDigits.slice(0, 5)}-${limitedDigits.slice(5)}`;
+    } else {
+      return `${limitedDigits.slice(0, 5)}-${limitedDigits.slice(5, 12)}-${limitedDigits.slice(12)}`;
+    }
+  };
+
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === 'phone') {
+      const formatted = formatPhoneNumber(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatted
+      }));
+      
+      // Check if digits exceed 11
+      const digits = value.replace(/\D/g, '');
+      if (digits.length > 11) {
+        setPhoneError(true);
+      } else {
+        setPhoneError(false);
+      }
+    } else if (field === 'cnic') {
+      const formatted = formatCNIC(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatted
+      }));
+      
+      // Check if digits exceed 13
+      const digits = value.replace(/\D/g, '');
+      if (digits.length > 13) {
+        setCnicError(true);
+      } else {
+        setCnicError(false);
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const pickImage = async () => {
@@ -246,16 +313,14 @@ const AdForm = ({ navigation, route }) => {
         location: formData.location || formData.address,
         address: formData.address,
         specifications: {
-          power: formData.power || 'Standard',
-          capacity: formData.capacity || 'Standard',
-          torque: formData.torque || 'Standard',
+          description: formData.specifications || 'Standard',
           condition: formData.vehicleCondition || 'Good'
         },
         rentalPolicies: [
-          formData.rentalPolicy1 || 'None',
-          formData.rentalPolicy2 || 'None',
-          formData.rentalPolicy3 || 'None',
-          formData.rentalPolicy4 || 'None'
+          'Security payment advance must be paid',
+          '50% rent advance must be paid, if anyone pays then admin will approve their rental request',
+          'Security for each machinery or vehicle may be different',
+          'Complete security will be returned to you when the machinery is completely fine'
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -370,7 +435,7 @@ const AdForm = ({ navigation, route }) => {
       {/* Basic Information */}
       <View style={{ paddingHorizontal: 20, marginBottom: 30 }}>
         <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 15, color: '#333' }}>
-          Basic Information
+          Basic Information *
         </Text>
         <TextInput
           placeholder="Full Name *"
@@ -393,12 +458,25 @@ const AdForm = ({ navigation, route }) => {
           style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
         />
         <TextInput
-          placeholder="Phone Number"
+          placeholder="Phone Number (0 3XX XXXXXXX)"
           value={formData.phone}
           onChangeText={(value) => handleInputChange('phone', value)}
           keyboardType="phone-pad"
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
+          maxLength={14}
+          style={{ 
+            borderWidth: 1, 
+            borderColor: phoneError ? '#ff0000' : '#ddd', 
+            borderRadius: 8, 
+            padding: 15, 
+            marginBottom: 15, 
+            backgroundColor: phoneError ? '#ffe6e6' : '#f8f9fa' 
+          }}
         />
+        {phoneError && (
+          <Text style={{ color: '#ff0000', fontSize: 12, marginTop: -10, marginBottom: 15, marginLeft: 5 }}>
+            Phone number should be 11 digits (0 3XX XXXXXXX)
+          </Text>
+        )}
         <TextInput
           placeholder="Company/Organization"
           value={formData.company}
@@ -406,18 +484,31 @@ const AdForm = ({ navigation, route }) => {
           style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
        />
        <TextInput
-          placeholder="CNIC Number"
+          placeholder="CNIC Number (12345-1234567-1)"
           value={formData.cnic}
           onChangeText={(value) => handleInputChange('cnic', value)}
           keyboardType="numeric"
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
+          maxLength={15}
+          style={{ 
+            borderWidth: 1, 
+            borderColor: cnicError ? '#ff0000' : '#ddd', 
+            borderRadius: 8, 
+            padding: 15, 
+            marginBottom: 15, 
+            backgroundColor: cnicError ? '#ffe6e6' : '#f8f9fa' 
+          }}
         />
+        {cnicError && (
+          <Text style={{ color: '#ff0000', fontSize: 12, marginTop: -10, marginBottom: 15, marginLeft: 5 }}>
+            CNIC should be 13 digits (XXXXX-XXXXXXX-X)
+          </Text>
+        )}
       </View>
 
       {/* Vehicle Information */}
       <View style={{ paddingHorizontal: 20, marginBottom: 30 }}>
         <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 15, color: '#333' }}>
-          Vehicle Information
+          Vehicle Information *
         </Text>
         <TextInput
           placeholder="Vehicle Name *"
@@ -449,54 +540,53 @@ const AdForm = ({ navigation, route }) => {
           Specifications *
         </Text>
         <TextInput
-          placeholder="Power (e.g., 1676)"
-          value={formData.power}
-          onChangeText={(value) => handleInputChange('power', value)}
-          keyboardType="numeric"
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
-        />
-        <TextInput
-          placeholder="Capacity (e.g., 149)"
-          value={formData.capacity}
-          onChangeText={(value) => handleInputChange('capacity', value)}
-          keyboardType="numeric"
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
-        />
-        <TextInput
-          placeholder="Torque (e.g., 64738)"
-          value={formData.torque}
-          onChangeText={(value) => handleInputChange('torque', value)}
-          keyboardType="numeric"
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
+          placeholder="Enter specifications (e.g., Power: 1676, Capacity: 149, Torque: 64738)"
+          value={formData.specifications}
+          onChangeText={(value) => handleInputChange('specifications', value)}
+          multiline={true}
+          numberOfLines={3}
+          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa', textAlignVertical: 'top' }}
         />
 
         <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 10, color: '#333' }}>
-          Rental Policies *
+          Rental Policies
         </Text>
-        <TextInput
-          placeholder="Policy 1 (e.g., Security Deposit Required)"
-          value={formData.rentalPolicy1}
-          onChangeText={(value) => handleInputChange('rentalPolicy1', value)}
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
-        />
-        <TextInput
-          placeholder="Policy 2 (e.g., Insurance Required)"
-          value={formData.rentalPolicy2}
-          onChangeText={(value) => handleInputChange('rentalPolicy2', value)}
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
-        />
-        <TextInput
-          placeholder="Policy 3 (e.g., Driver License Required)"
-          value={formData.rentalPolicy3}
-          onChangeText={(value) => handleInputChange('rentalPolicy3', value)}
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
-        />
-        <TextInput
-          placeholder="Policy 4 (e.g., Minimum Rental Period)"
-          value={formData.rentalPolicy4}
-          onChangeText={(value) => handleInputChange('rentalPolicy4', value)}
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
-        />
+        <View style={{ backgroundColor: '#f8f9fa', borderRadius: 8, padding: 15, marginBottom: 15 }}>
+          <Text style={{ fontSize: 14, lineHeight: 22, color: '#333', marginBottom: 8, fontWeight: '600' }}>
+            • Security payment advance must be paid
+          </Text>
+          <Text style={{ fontSize: 14, lineHeight: 22, color: '#333', marginBottom: 8, fontWeight: '600' }}>
+            • 50% rent advance must be paid, if anyone pays then admin will approve their rental request
+          </Text>
+          <Text style={{ fontSize: 14, lineHeight: 22, color: '#333', marginBottom: 8, fontWeight: '600' }}>
+            • Security for each machinery or vehicle may be different
+          </Text>
+          <Text style={{ fontSize: 14, lineHeight: 22, color: '#333', fontWeight: '600' }}>
+            • Complete security will be returned to you when the machinery is completely fine
+          </Text>
+        </View>
+
+        {/* Publisher Agreement */}
+        <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 10, marginTop: 10, color: '#333' }}>
+          Publisher Agreement
+        </Text>
+        <View style={{ backgroundColor: '#e3f2fd', borderRadius: 8, padding: 15, marginBottom: 15, borderLeftWidth: 4, borderLeftColor: '#2196F3' }}>
+          <Text style={{ fontSize: 14, lineHeight: 22, color: '#333', marginBottom: 10, fontWeight: '600' }}>
+            Important: Commission & Rent Update Policy
+          </Text>
+          <Text style={{ fontSize: 14, lineHeight: 22, color: '#333', marginBottom: 8 }}>
+            • When you set a rent price for your machinery, please note that when a rental request is submitted to the admin, the admin will add their commission to the rent amount.
+          </Text>
+          <Text style={{ fontSize: 14, lineHeight: 22, color: '#333', marginBottom: 8 }}>
+            • The commission will be added to your set rent (Rent + Commission), and the admin will approve the rental request with this new total rent amount.
+          </Text>
+          <Text style={{ fontSize: 14, lineHeight: 22, color: '#333', marginBottom: 8 }}>
+            • The new rent amount (Rent + Commission) will be displayed on your ad and will be the final amount for the rental transaction.
+          </Text>
+          <Text style={{ fontSize: 14, lineHeight: 22, color: '#333' }}>
+            • By posting this ad, you agree to this commission structure and rent update process.
+          </Text>
+        </View>
       </View>
 
       {/* Image Upload Section */}
@@ -578,14 +668,12 @@ const AdForm = ({ navigation, route }) => {
           <Text>Vehicle Name: {formData.vehicleName}</Text>
           <Text>Rent: Rs {formData.rentPerDay}/day</Text>
           <Text>Specifications:</Text>
-          <Text>  • Power: {formData.power || 'Not set'}</Text>
-          <Text>  • Capacity: {formData.capacity || 'Not set'}</Text>
-          <Text>  • Torque: {formData.torque || 'Not set'}</Text>
+          <Text>  • {formData.specifications || 'Not set'}</Text>
           <Text>Rental Policies:</Text>
-          <Text>  • Policy 1: {formData.rentalPolicy1 || 'Not set'}</Text>
-          <Text>  • Policy 2: {formData.rentalPolicy2 || 'Not set'}</Text>
-          <Text>  • Policy 3: {formData.rentalPolicy3 || 'Not set'}</Text>
-          <Text>  • Policy 4: {formData.rentalPolicy4 || 'Not set'}</Text>
+          <Text>  • Security payment advance must be paid</Text>
+          <Text>  • 50% rent advance must be paid, if anyone pays then admin will approve their rental request</Text>
+          <Text>  • Security for each machinery or vehicle may be different</Text>
+          <Text>  • Complete security will be returned to you when the machinery is completely fine</Text>
           <Text style={{ fontWeight: 'bold', color: '#333', marginTop: 10 }}>
             📋 Basic Information Display:
           </Text>

@@ -71,16 +71,16 @@ const RenterForm = ({ navigation, route }) => {
     return null;
   };
 
-  // Utility function to get number of days from duration string
-  const getDaysFromDuration = (duration) => {
-    switch (duration) {
-      case '1 Day': return 1;
-      case '3 Days': return 3;
-      case '1 Week': return 7;
-      case '2 Weeks': return 14;
-      case '1 Month': return 30;
-      default: return 1;
+  // Utility function to calculate number of days from start and end dates
+  const calculateDays = (startDateStr, endDateStr) => {
+    const startDate = parseDate(startDateStr);
+    const endDate = parseDate(endDateStr);
+    if (startDate && endDate) {
+      const diffTime = Math.abs(endDate - startDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
+      return diffDays;
     }
+    return 0;
   };
 
   const [formData, setFormData] = useState({
@@ -89,7 +89,7 @@ const RenterForm = ({ navigation, route }) => {
     address: '',
     cnic: '',
     rentalStartDate: '',
-    rentalDuration: '1 Day',
+    rentalEndDate: '',
     deliveryLocation: '',
     projectType: 'Construction',
     operatorRequired: 'No',
@@ -98,15 +98,89 @@ const RenterForm = ({ navigation, route }) => {
     acceptedTerms: false
   })
 
-  const [showDurationPicker, setShowDurationPicker] = useState(false)
   const [showProjectPicker, setShowProjectPicker] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date())
-
-  const durations = ['1 Day', '3 Days', '1 Week', '2 Weeks', '1 Month', 'Custom']
+  const [selectedEndDate, setSelectedEndDate] = useState(new Date())
+  const [phoneError, setPhoneError] = useState(false)
+  const [emergencyPhoneError, setEmergencyPhoneError] = useState(false)
+  const [cnicError, setCnicError] = useState(false)
   const projectTypes = ['Construction', 'Road Work', 'Mining', 'Demolition', 'Landscaping', 'Other']
 
-  // Date picker change handler
+  // Function to format phone number in Pakistani domestic format (0 3XX XXXXXXX)
+  const formatPhoneNumber = (text) => {
+    // Remove all non-digit characters
+    const digits = text.replace(/\D/g, '');
+    
+    // Limit to 11 digits
+    const limitedDigits = digits.slice(0, 11);
+    
+    // Format: 0 3XX XXXXXXX
+    if (limitedDigits.length === 0) {
+      return '';
+    } else if (limitedDigits.length <= 1) {
+      return limitedDigits;
+    } else if (limitedDigits.length <= 4) {
+      return `${limitedDigits.slice(0, 1)} ${limitedDigits.slice(1)}`;
+    } else {
+      return `${limitedDigits.slice(0, 1)} ${limitedDigits.slice(1, 4)} ${limitedDigits.slice(4)}`;
+    }
+  };
+
+  const handlePhoneChange = (text, field) => {
+    const formatted = formatPhoneNumber(text);
+    setFormData({ ...formData, [field]: formatted });
+    
+    // Check if digits exceed 11
+    const digits = text.replace(/\D/g, '');
+    if (field === 'phone') {
+      if (digits.length > 11) {
+        setPhoneError(true);
+      } else {
+        setPhoneError(false);
+      }
+    } else if (field === 'emergencyContact') {
+      if (digits.length > 11) {
+        setEmergencyPhoneError(true);
+      } else {
+        setEmergencyPhoneError(false);
+      }
+    }
+  };
+
+  // Function to format CNIC in Pakistani format (XXXXX-XXXXXXX-X)
+  const formatCNIC = (text) => {
+    // Remove all non-digit characters
+    const digits = text.replace(/\D/g, '');
+    
+    // Limit to 13 digits
+    const limitedDigits = digits.slice(0, 13);
+    
+    // Format: XXXXX-XXXXXXX-X
+    if (limitedDigits.length <= 5) {
+      return limitedDigits;
+    } else if (limitedDigits.length <= 12) {
+      return `${limitedDigits.slice(0, 5)}-${limitedDigits.slice(5)}`;
+    } else {
+      return `${limitedDigits.slice(0, 5)}-${limitedDigits.slice(5, 12)}-${limitedDigits.slice(12)}`;
+    }
+  };
+
+  const handleCNICChange = (text) => {
+    const formatted = formatCNIC(text);
+    setFormData({ ...formData, cnic: formatted });
+    
+    // Check if digits exceed 13
+    const digits = text.replace(/\D/g, '');
+    if (digits.length > 13) {
+      setCnicError(true);
+    } else {
+      setCnicError(false);
+    }
+  };
+
+  // Date picker change handler for start date
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
@@ -117,6 +191,20 @@ const RenterForm = ({ navigation, route }) => {
       const year = selectedDate.getFullYear();
       const formattedDate = `${day}/${month}/${year}`;
       setFormData({ ...formData, rentalStartDate: formattedDate });
+    }
+  };
+
+  // Date picker change handler for end date
+  const onEndDateChange = (event, selectedDate) => {
+    setShowEndDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setSelectedEndDate(selectedDate);
+      // Format date as DD/MM/YYYY
+      const day = selectedDate.getDate().toString().padStart(2, '0');
+      const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+      const year = selectedDate.getFullYear();
+      const formattedDate = `${day}/${month}/${year}`;
+      setFormData({ ...formData, rentalEndDate: formattedDate });
     }
   };
 
@@ -134,14 +222,31 @@ const RenterForm = ({ navigation, route }) => {
       alert('Please enter rental start date')
       return
     }
+    if (!formData.rentalEndDate) {
+      alert('Please enter rental end date')
+      return
+    }
+    // Validate end date is after start date
+    const startDate = parseDate(formData.rentalStartDate);
+    const endDate = parseDate(formData.rentalEndDate);
+    if (startDate && endDate && endDate < startDate) {
+      alert('End date must be after start date')
+      return
+    }
     if (!formData.acceptedTerms) {
       alert('Please accept terms and conditions')
+      return
+    }
+    // Calculate numberOfDays from start and end dates
+    const numberOfDays = calculateDays(formData.rentalStartDate, formData.rentalEndDate);
+    if (numberOfDays < 1) {
+      alert('Please select valid start and end dates')
       return
     }
     // Add numberOfDays to the rental data
     const rentalDataWithDays = {
       ...formData,
-      numberOfDays: getDaysFromDuration(formData.rentalDuration)
+      numberOfDays: numberOfDays
     };
     
     navigation.navigate("RentalEstimation", { 
@@ -191,12 +296,27 @@ const RenterForm = ({ navigation, route }) => {
         />
         
         <TextInput 
-          style={{ width: "100%", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, paddingHorizontal: 15, marginBottom: 12, backgroundColor: '#f9f9f9' }} 
-          placeholder="Phone / WhatsApp *" 
+          style={{ 
+            width: "100%", 
+            borderWidth: 1, 
+            borderColor: phoneError ? "#ff0000" : "#ddd", 
+            borderRadius: 8, 
+            paddingVertical: 12, 
+            paddingHorizontal: 15, 
+            marginBottom: 12, 
+            backgroundColor: phoneError ? '#ffe6e6' : '#f9f9f9' 
+          }} 
+          placeholder="Phone / WhatsApp * (0 3XX XXXXXXX)" 
           keyboardType="phone-pad" 
           value={formData.phone}
-          onChangeText={(text) => setFormData({ ...formData, phone: text })}
+          onChangeText={(text) => handlePhoneChange(text, 'phone')}
+          maxLength={14}
         />
+        {phoneError && (
+          <Text style={{ color: "#ff0000", fontSize: 12, marginTop: -8, marginBottom: 12, marginLeft: 5 }}>
+            Phone number should be 11 digits (0 3XX XXXXXXX)
+          </Text>
+        )}
         
         <TextInput 
           style={{ width: "100%", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, paddingHorizontal: 15, marginBottom: 12, backgroundColor: '#f9f9f9' }} 
@@ -206,12 +326,27 @@ const RenterForm = ({ navigation, route }) => {
         />
         
         <TextInput 
-          style={{ width: "100%", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, paddingHorizontal: 15, marginBottom: 12, backgroundColor: '#f9f9f9' }} 
-          placeholder="CNIC Number *" 
+          style={{ 
+            width: "100%", 
+            borderWidth: 1, 
+            borderColor: cnicError ? "#ff0000" : "#ddd", 
+            borderRadius: 8, 
+            paddingVertical: 12, 
+            paddingHorizontal: 15, 
+            marginBottom: 12, 
+            backgroundColor: cnicError ? '#ffe6e6' : '#f9f9f9' 
+          }} 
+          placeholder="CNIC Number * (12345-1234567-1)" 
           keyboardType="numeric" 
           value={formData.cnic}
-          onChangeText={(text) => setFormData({ ...formData, cnic: text })}
+          onChangeText={handleCNICChange}
+          maxLength={15}
         />
+        {cnicError && (
+          <Text style={{ color: "#ff0000", fontSize: 12, marginTop: -8, marginBottom: 12, marginLeft: 5 }}>
+            CNIC should be 13 digits (XXXXX-XXXXXXX-X)
+          </Text>
+        )}
       </View>
 
       {/* Section: Rental Details */}
@@ -231,7 +366,7 @@ const RenterForm = ({ navigation, route }) => {
           <Ionicons name="calendar-outline" size={20} color="#47D6FF" />
         </TouchableOpacity>
 
-        {/* Date Picker */}
+        {/* Date Picker for Start Date */}
         {showDatePicker && (
           <DateTimePicker
             value={selectedDate}
@@ -243,34 +378,55 @@ const RenterForm = ({ navigation, route }) => {
           />
         )}
 
-        {/* Duration */}
+        {/* End Date */}
         <TouchableOpacity 
-          onPress={() => setShowDurationPicker(!showDurationPicker)}
+          onPress={() => setShowEndDatePicker(true)}
           style={{ width: "100%", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, paddingHorizontal: 15, marginBottom: 12, backgroundColor: '#f9f9f9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
         >
-          <Text style={{ color: '#333' }}>Duration: {formData.rentalDuration}</Text>
-          <Ionicons name={showDurationPicker ? "chevron-up" : "chevron-down"} size={20} color="#47D6FF" />
+          <Text style={{ color: formData.rentalEndDate ? '#333' : '#999' }}>
+            {formData.rentalEndDate || 'Select Rental End Date *'}
+          </Text>
+          <Ionicons name="calendar-outline" size={20} color="#47D6FF" />
         </TouchableOpacity>
 
-        {showDurationPicker && (
-          <View style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, marginBottom: 12, backgroundColor: '#fff' }}>
-            {durations.map((duration, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  setFormData({ ...formData, rentalDuration: duration })
-                  setShowDurationPicker(false)
-                }}
-                style={{ paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: index < durations.length - 1 ? 1 : 0, borderBottomColor: '#f0f0f0' }}
-              >
-                <Text style={{ color: formData.rentalDuration === duration ? '#47D6FF' : '#333' }}>{duration}</Text>
-              </TouchableOpacity>
-            ))}
+        {/* Date Picker for End Date */}
+        {showEndDatePicker && (
+          <DateTimePicker
+            value={selectedEndDate}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onEndDateChange}
+            minimumDate={formData.rentalStartDate ? parseDate(formData.rentalStartDate) || new Date() : new Date()} // Don't allow past dates or dates before start date
+            style={{ backgroundColor: 'white' }}
+          />
+        )}
+
+        {/* Number of Days Display (Auto-calculated) */}
+        {formData.rentalStartDate && formData.rentalEndDate && (
+          <View style={{ 
+            width: "100%", 
+            borderWidth: 1, 
+            borderColor: "#47D6FF", 
+            borderRadius: 8, 
+            paddingVertical: 12, 
+            paddingHorizontal: 15, 
+            marginBottom: 12, 
+            backgroundColor: '#e3f2fd',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Text style={{ color: '#333', fontSize: 14, fontWeight: '600' }}>
+              Number of Days:
+            </Text>
+            <Text style={{ color: '#47D6FF', fontSize: 16, fontWeight: 'bold' }}>
+              {calculateDays(formData.rentalStartDate, formData.rentalEndDate)} days
+            </Text>
           </View>
         )}
 
-        {/* End Date Display */}
-        {formData.rentalStartDate && formData.rentalDuration && (
+        {/* Rental Period Display */}
+        {formData.rentalStartDate && formData.rentalEndDate && (
           <View style={{ 
             backgroundColor: '#e8f5e9', 
             padding: 12, 
@@ -285,11 +441,11 @@ const RenterForm = ({ navigation, route }) => {
             <Text style={{ color: '#2e7d32', fontSize: 16, fontWeight: '600' }}>
               {(() => {
                 const startDate = parseDate(formData.rentalStartDate);
-                if (startDate) {
-                  const numberOfDays = getDaysFromDuration(formData.rentalDuration);
-                  const endDate = new Date(startDate);
-                  endDate.setDate(endDate.getDate() + (numberOfDays - 1));
-                  return `${startDate.toLocaleDateString('en-GB')} → ${endDate.toLocaleDateString('en-GB')} (${numberOfDays} days)`;
+                const endDate = parseDate(formData.rentalEndDate);
+                if (startDate && endDate) {
+                  const diffTime = Math.abs(endDate - startDate);
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
+                  return `${startDate.toLocaleDateString('en-GB')} → ${endDate.toLocaleDateString('en-GB')} (${diffDays} days)`;
                 }
                 return 'Invalid date format';
               })()}
@@ -381,12 +537,27 @@ const RenterForm = ({ navigation, route }) => {
         />
         
         <TextInput 
-          style={{ width: "100%", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, paddingHorizontal: 15, marginBottom: 12, backgroundColor: '#f9f9f9' }} 
-          placeholder="Emergency Contact Number" 
+          style={{ 
+            width: "100%", 
+            borderWidth: 1, 
+            borderColor: emergencyPhoneError ? "#ff0000" : "#ddd", 
+            borderRadius: 8, 
+            paddingVertical: 12, 
+            paddingHorizontal: 15, 
+            marginBottom: 12, 
+            backgroundColor: emergencyPhoneError ? '#ffe6e6' : '#f9f9f9' 
+          }} 
+          placeholder="Emergency Contact Number (0 3XX XXXXXXX)" 
           keyboardType="phone-pad"
           value={formData.emergencyContact}
-          onChangeText={(text) => setFormData({ ...formData, emergencyContact: text })}
+          onChangeText={(text) => handlePhoneChange(text, 'emergencyContact')}
+          maxLength={14}
         />
+        {emergencyPhoneError && (
+          <Text style={{ color: "#ff0000", fontSize: 12, marginTop: -8, marginBottom: 12, marginLeft: 5 }}>
+            Phone number should be 11 digits (0 3XX XXXXXXX)
+          </Text>
+        )}
       </View>
 
       {/* Terms & Conditions */}

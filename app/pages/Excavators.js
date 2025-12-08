@@ -80,12 +80,16 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
           </View>
         ) : (
           machinery.map((item) => (
-            <View key={item.id} style={{
-              flexDirection: 'row', alignSelf: "center", backgroundColor: 'white',
-              justifyContent: 'flex-start', alignItems: 'center', width: '95%', height: 160,
-              marginTop: 20, borderRadius: 12, elevation: 5, padding: 10
-            }}>
-              <TouchableOpacity onPress={() => goToMachineryDetails(item)} style={{ marginRight: 15 }}>
+            <TouchableOpacity 
+              key={item.id} 
+              onPress={() => goToMachineryDetails(item)}
+              style={{
+                flexDirection: 'row', alignSelf: "center", backgroundColor: 'white',
+                justifyContent: 'flex-start', alignItems: 'center', width: '95%', height: 160,
+                marginTop: 20, borderRadius: 12, elevation: 5, padding: 10
+              }}
+            >
+              <View style={{ marginRight: 15 }}>
                 {console.log('Rendering image for:', item.name, 'Image URL:', item.imageUrl, 'ImageUrls:', item.imageUrls)}
                 {(item.imageUrl || (item.imageUrls && item.imageUrls.length > 0)) ? (
                   <Image 
@@ -117,7 +121,7 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
                     </Text>
                   </View>
                 )}
-              </TouchableOpacity>
+              </View>
               <View style={{ flex: 1, justifyContent: 'center' }}>
                 <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 5 }}>{item.name}</Text>
                 <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#47D6FF', marginBottom: 5 }}>${item.price}/{item.priceUnit}</Text>
@@ -132,7 +136,7 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
                   </Text>
                 )}
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>

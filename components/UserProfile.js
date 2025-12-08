@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -46,19 +46,44 @@ const UserProfile = ({
   const textSize = getTextSize();
 
   const displayName = user?.firstName && user?.lastName 
-    ? `${user.firstName} ${user.lastName}` 
+    ? `${user.firstName} ${user.lastName}`
     : user?.firstName || 'User';
-  const profileImage = user?.imageUrl || require('../assets/images/dp.png.jpg');
+  
+  // Generate cache-busted image URL whenever user?.imageUrl changes
+  // This ensures the image refreshes immediately when Redux state updates
+  // Using useMemo with Date.now() ensures a fresh timestamp each time imageUrl changes
+  const imageSource = useMemo(() => {
+    if (user?.imageUrl && user.imageUrl.startsWith('http')) {
+      // Add cache busting with timestamp to force fresh load
+      // The timestamp is generated fresh each time useMemo runs (when imageUrl changes)
+      const separator = user.imageUrl.includes('?') ? '&' : '?';
+      const timestamp = Date.now();
+      const cacheBustedUrl = `${user.imageUrl}${separator}_v=${timestamp}`;
+      console.log('UserProfile: Generated cache-busted URL:', cacheBustedUrl);
+      console.log('UserProfile: Image URL changed, timestamp:', timestamp);
+      return { uri: cacheBustedUrl };
+    }
+    return require('../assets/images/dp.png.jpg');
+  }, [user?.imageUrl]); // Re-compute whenever imageUrl changes
 
   const ProfileContent = () => (
     <View style={[styles.container, style]}>
       <Image
-        source={typeof profileImage === 'string' ? { uri: profileImage } : profileImage}
+        key={`profile-img-${user?.uid || 'default'}-${user?.imageUrl || 'no-img'}`}
+        source={imageSource}
         style={[
           sizeStyles,
           styles.profileImage,
           imageStyle
         ]}
+        onError={(error) => {
+          console.error('UserProfile: Error loading image:', error);
+          console.error('UserProfile: Failed URL:', user?.imageUrl);
+        }}
+        onLoad={() => {
+          console.log('UserProfile: Image loaded successfully');
+        }}
+        resizeMode="cover"
       />
       {showName && (
         <Text style={[
@@ -99,5 +124,3 @@ const styles = StyleSheet.create({
 });
 
 export default UserProfile;
-
-

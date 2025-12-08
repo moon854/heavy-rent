@@ -14,7 +14,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { updateData, uploadImageToCloudinary } from '../Helper/firebaseHelper';
+import { updateData, uploadImageToCloudinary, getDataById } from '../Helper/firebaseHelper';
 import { setUser, refreshUser } from '../redux/Slices/HomeDataSlice';
 
 const ProfileEdit = () => {
@@ -30,6 +30,72 @@ const ProfileEdit = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
+  const [cnicError, setCnicError] = useState(false);
+
+  // Function to format phone number in Pakistani domestic format (0 3XX XXXXXXX)
+  const formatPhoneNumber = (text) => {
+    // Remove all non-digit characters
+    const digits = text.replace(/\D/g, '');
+    
+    // Limit to 11 digits
+    const limitedDigits = digits.slice(0, 11);
+    
+    // Format: 0 3XX XXXXXXX
+    if (limitedDigits.length === 0) {
+      return '';
+    } else if (limitedDigits.length <= 1) {
+      return limitedDigits;
+    } else if (limitedDigits.length <= 4) {
+      return `${limitedDigits.slice(0, 1)} ${limitedDigits.slice(1)}`;
+    } else {
+      return `${limitedDigits.slice(0, 1)} ${limitedDigits.slice(1, 4)} ${limitedDigits.slice(4)}`;
+    }
+  };
+
+  // Function to format CNIC in Pakistani format (XXXXX-XXXXXXX-X)
+  const formatCNIC = (text) => {
+    // Remove all non-digit characters
+    const digits = text.replace(/\D/g, '');
+    
+    // Limit to 13 digits
+    const limitedDigits = digits.slice(0, 13);
+    
+    // Format: XXXXX-XXXXXXX-X
+    if (limitedDigits.length <= 5) {
+      return limitedDigits;
+    } else if (limitedDigits.length <= 12) {
+      return `${limitedDigits.slice(0, 5)}-${limitedDigits.slice(5)}`;
+    } else {
+      return `${limitedDigits.slice(0, 5)}-${limitedDigits.slice(5, 12)}-${limitedDigits.slice(12)}`;
+    }
+  };
+
+  const handleCNICChange = (text) => {
+    const formatted = formatCNIC(text);
+    setCnic(formatted);
+    
+    // Check if digits exceed 13
+    const digits = text.replace(/\D/g, '');
+    if (digits.length > 13) {
+      setCnicError(true);
+    } else {
+      setCnicError(false);
+    }
+  };
+
+  const handlePhoneChange = (text) => {
+    const formatted = formatPhoneNumber(text);
+    setPhone(formatted);
+    
+    // Check if digits exceed 11
+    const digits = text.replace(/\D/g, '');
+    if (digits.length > 11) {
+      setPhoneError(true);
+    } else {
+      setPhoneError(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -53,14 +119,22 @@ const ProfileEdit = () => {
         quality: 0.8,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
         const imageUri = result.assets[0].uri;
+        console.log('Uploading image to Cloudinary:', imageUri);
         const uploadedImageUrl = await uploadImageToCloudinary(imageUri);
-        setImageUrl(uploadedImageUrl);
+        console.log('Image uploaded successfully:', uploadedImageUrl);
+        
+        if (uploadedImageUrl && uploadedImageUrl.startsWith('http')) {
+          setImageUrl(uploadedImageUrl);
+          Alert.alert('Success', 'Image uploaded successfully!');
+        } else {
+          Alert.alert('Error', 'Failed to upload image. Please try again.');
+        }
       }
     } catch (error) {
-      console.log('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      console.error('Error picking/uploading image:', error);
+      Alert.alert('Error', `Failed to upload image: ${error.message || 'Unknown error'}`);
     } finally {
       setImageLoading(false);
     }
@@ -91,24 +165,31 @@ const ProfileEdit = () => {
       };
 
       // Update user data in Firestore
+      console.log('Updating user data in Firestore:', updatedUserData);
       await updateData('users', user.uid, updatedUserData);
+      console.log('User data updated in Firestore successfully');
       
-      // Update Redux store
-      const updatedUser = { ...user, ...updatedUserData };
-      console.log('Updating Redux with:', updatedUser);
-      dispatch(setUser(updatedUser));
+      // Fetch fresh user data from Firestore to ensure we have the latest
+      const freshUserData = await getDataById('users', user.uid);
+      console.log('Fetched fresh user data:', freshUserData);
+      
+      if (freshUserData) {
+        // Update Redux store with fresh data from Firestore
+        dispatch(setUser(freshUserData));
+        console.log('Redux store updated with fresh user data');
+      } else {
+        // Fallback: Update Redux store with local data
+        const updatedUser = { ...user, ...updatedUserData };
+        dispatch(setUser(updatedUser));
+        console.log('Redux store updated with local data (fallback)');
+      }
       
       Alert.alert('Success', 'Profile updated successfully!', [
         { 
           text: 'OK', 
           onPress: () => {
-            // Force navigation back and refresh
+            // Force navigation back immediately - useFocusEffect will handle refresh
             navigation.goBack();
-            // Small delay to ensure the Profile screen re-renders
-            setTimeout(() => {
-              // Trigger a re-render by dispatching refreshUser
-              dispatch(refreshUser());
-            }, 100);
           }
         }
       ]);
@@ -195,25 +276,43 @@ const ProfileEdit = () => {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Phone Number</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              phoneError && { borderColor: '#ff0000', backgroundColor: '#ffe6e6' }
+            ]}
             value={phone}
-            onChangeText={setPhone}
-            placeholder="Enter your phone number"
+            onChangeText={handlePhoneChange}
+            placeholder="Enter your phone number (0 3XX XXXXXXX)"
             placeholderTextColor="#999"
             keyboardType="phone-pad"
+            maxLength={14}
           />
+          {phoneError && (
+            <Text style={styles.errorText}>
+              Phone number should be 11 digits (0 3XX XXXXXXX)
+            </Text>
+          )}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>CNIC</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              cnicError && { borderColor: '#ff0000', backgroundColor: '#ffe6e6' }
+            ]}
             value={cnic}
-            onChangeText={setCnic}
+            onChangeText={handleCNICChange}
             placeholder="Enter your CNIC (12345-1234567-1)"
             placeholderTextColor="#999"
             keyboardType="numeric"
+            maxLength={15}
           />
+          {cnicError && (
+            <Text style={styles.errorText}>
+              CNIC should be 13 digits (XXXXX-XXXXXXX-X)
+            </Text>
+          )}
         </View>
       </View>
 
@@ -322,6 +421,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: '#ff0000',
+    fontSize: 12,
+    marginTop: 5,
   },
 });
 

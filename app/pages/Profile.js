@@ -2,11 +2,13 @@ import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { clearUser, refreshUser } from '../redux/Slices/HomeDataSlice';
+import { clearUser, refreshUser, setUser } from '../redux/Slices/HomeDataSlice';
 import UserProfile from '../../components/UserProfile';
 import { useCallback, useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import UserNotificationService from '../services/UserNotificationService';
+import { getDataById } from '../Helper/firebaseHelper';
+import { getAuth } from 'firebase/auth';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -16,6 +18,7 @@ const Profile = () => {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [profileKey, setProfileKey] = useState(0);
 
   // Live unread notification count
   useEffect(() => {
@@ -34,13 +37,35 @@ const Profile = () => {
   // Force re-render when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      // This will cause the component to re-render when the screen comes into focus
-      console.log('Profile screen focused, current user:', user);
-      console.log('User firstName:', user?.firstName);
-      console.log('User lastName:', user?.lastName);
-      // Force refresh of user data
-      dispatch(refreshUser());
-    }, [dispatch])
+      // Fetch fresh user data from Firebase when screen comes into focus
+      const fetchFreshUserData = async () => {
+        try {
+          const auth = getAuth();
+          const currentUser = auth.currentUser;
+          if (currentUser && currentUser.uid) {
+            console.log('Profile screen focused - Fetching fresh user data from Firebase...');
+            const freshUserData = await getDataById('users', currentUser.uid);
+            if (freshUserData) {
+              console.log('Fresh user data fetched:', freshUserData);
+              console.log('Image URL in fresh data:', freshUserData.imageUrl);
+              console.log('Current Redux imageUrl:', user?.imageUrl);
+              
+              // Always update Redux with fresh data
+              dispatch(setUser(freshUserData));
+              
+              // Force UserProfile component to re-mount by changing key
+              // This ensures the image component is completely remounted
+              setProfileKey(prev => prev + 1);
+              console.log('Profile key updated to force remount');
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching fresh user data:', error);
+        }
+      };
+      
+      fetchFreshUserData();
+    }, [dispatch, user?.imageUrl])
   );
 
   const handleLogout = () => {
@@ -65,7 +90,7 @@ const Profile = () => {
           Rent-To-Build
         </Text>
         <UserProfile 
-          key={`${user?.firstName}-${user?.lastName}-${user?.imageUrl}`}
+          key={`profile-${user?.uid || 'default'}-${user?.imageUrl || 'no-image'}-${profileKey}`}
           size="large" 
           showName={true}
           imageStyle={{

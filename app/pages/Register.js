@@ -24,6 +24,7 @@ const Register = ({ navigation }) => {
   const [showVerificationModal, setShowVerificationModal] = useState(false)
   const [verificationMessage, setVerificationMessage] = useState("")
   const [phoneVerificationId, setPhoneVerificationId] = useState(null)
+  const [phoneError, setPhoneError] = useState(false)
 
   // Function to format CNIC in Pakistani format (XXXXX-XXXXXXX-X)
   const formatCNIC = (text) => {
@@ -46,6 +47,39 @@ const Register = ({ navigation }) => {
   const handleCNICChange = (text) => {
     const formatted = formatCNIC(text)
     setCnic(formatted)
+  }
+
+  // Function to format phone number in Pakistani domestic format (0 3XX XXXXXXX)
+  const formatPhoneNumber = (text) => {
+    // Remove all non-digit characters
+    const digits = text.replace(/\D/g, '')
+    
+    // Limit to 11 digits
+    const limitedDigits = digits.slice(0, 11)
+    
+    // Format: 0 3XX XXXXXXX
+    if (limitedDigits.length === 0) {
+      return ''
+    } else if (limitedDigits.length <= 1) {
+      return limitedDigits
+    } else if (limitedDigits.length <= 4) {
+      return `${limitedDigits.slice(0, 1)} ${limitedDigits.slice(1)}`
+    } else {
+      return `${limitedDigits.slice(0, 1)} ${limitedDigits.slice(1, 4)} ${limitedDigits.slice(4)}`
+    }
+  }
+
+  const handlePhoneChange = (text) => {
+    const formatted = formatPhoneNumber(text)
+    setPhone(formatted)
+    
+    // Check if digits exceed 11
+    const digits = text.replace(/\D/g, '')
+    if (digits.length > 11) {
+      setPhoneError(true)
+    } else {
+      setPhoneError(false)
+    }
   }
 
 
@@ -192,7 +226,29 @@ const Register = ({ navigation }) => {
 
         <TextInput onChangeText={(e) => setFirstName(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Enter Your Name " />
         <TextInput onChangeText={(e) => setEmail(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Your Email" keyboardType="email-address" autoCapitalize="none" />
-        <TextInput onChangeText={(e) => setPhone(e)} style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} placeholder="Phone Number" keyboardType="phone-pad" />
+        <TextInput 
+          onChangeText={handlePhoneChange} 
+          value={phone}
+          maxLength={14}
+          keyboardType="phone-pad" 
+          style={{ 
+            borderColor: phoneError ? "#ff0000" : "#47D6FF", 
+            borderWidth: 1, 
+            width: "80%", 
+            height: 50, 
+            alignSelf: 'center', 
+            borderRadius: 10, 
+            marginTop: 40, 
+            backgroundColor: phoneError ? "#ffe6e6" : "white", 
+            paddingLeft: 10 
+          }} 
+          placeholder="Phone Number (0 3XX XXXXXXX)" 
+        />
+        {phoneError && (
+          <Text style={{ color: "#ff0000", fontSize: 12, width: "80%", alignSelf: 'center', marginTop: 5 }}>
+            Phone number should be 11 digits (0 3XX XXXXXXX)
+          </Text>
+        )}
         <TextInput 
           onChangeText={handleCNICChange} 
           value={cnic}

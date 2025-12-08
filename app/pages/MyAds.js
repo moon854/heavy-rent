@@ -138,8 +138,9 @@ const MyAds = ({ navigation }) => {
               Your Posted Ads ({myAds.length})
             </Text>
             {myAds.map((ad) => (
-              <View
+              <TouchableOpacity
                 key={ad.id}
+                onPress={() => goToMachineryDetails(ad)}
                 style={{
                   backgroundColor: 'white',
                   borderRadius: 12,
@@ -153,10 +154,7 @@ const MyAds = ({ navigation }) => {
                 }}
               >
                 {/* Main Ad Content */}
-                <TouchableOpacity 
-                  onPress={() => goToMachineryDetails(ad)}
-                  style={{ flexDirection: 'row' }}
-                >
+                <View style={{ flexDirection: 'row' }}>
                   {/* Ad Image */}
                   <View style={{ marginRight: 15 }}>
                     {(ad.imageUrl || (ad.imageUrls && ad.imageUrls.length > 0)) ? (
@@ -236,7 +234,7 @@ const MyAds = ({ navigation }) => {
                       <Ionicons name="chevron-forward" size={20} color="#47D6FF" />
                     </View>
                   </View>
-                </TouchableOpacity>
+                </View>
 
                 {/* Action Buttons */}
                 <View style={{ 
@@ -398,7 +396,7 @@ const MyAds = ({ navigation }) => {
                     </>
                   )}
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </>
         )}
