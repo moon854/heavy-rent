@@ -347,12 +347,56 @@ const MachineryDetails = ({ navigation, route }) => {
         }}
       >
         <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 8 }}>
-            ${machinery?.price || 0} / {machinery?.priceUnit || 'day'}
-          </Text>
+          {(() => {
+            // Check if owner should see breakdown
+            const currentPrice = parseFloat(machinery?.price || 0);
+            let originalPrice = parseFloat(machinery?.originalPrice || 0);
+            let commission = parseFloat(machinery?.commission || 0);
+            
+            // If originalPrice doesn't exist but price exists, calculate breakdown
+            // Assume 20% commission if not specified (can be adjusted)
+            if (isOwner && currentPrice > 0 && originalPrice === 0) {
+              const defaultCommissionPercent = 0.20; // 20% default
+              originalPrice = currentPrice / (1 + defaultCommissionPercent);
+              commission = currentPrice - originalPrice;
+            }
+            
+            const hasCommission = originalPrice > 0 && currentPrice > originalPrice;
+            
+            if (isOwner && currentPrice > 0) {
+              // Owner sees breakdown: Rent + Commission = Total
+              return (
+                <View>
+                  <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 8 }}>
+                    Rs. {currentPrice.toLocaleString()} (PKR) / {machinery?.priceUnit || 'day'}
+                  </Text>
+                  {hasCommission && (
+                    <View style={{ backgroundColor: '#e3f2fd', borderRadius: 8, padding: 10, marginTop: 5 }}>
+                      <Text style={{ fontSize: 13, color: '#1976d2', marginBottom: 3 }}>
+                        <Text style={{ fontWeight: '600' }}>Rent:</Text> Rs. {originalPrice.toFixed(0)} (PKR)
+                      </Text>
+                      <Text style={{ fontSize: 13, color: '#1976d2', marginBottom: 3 }}>
+                        <Text style={{ fontWeight: '600' }}>Commission:</Text> Rs. {commission.toFixed(0)} (PKR)
+                      </Text>
+                      <Text style={{ fontSize: 13, color: '#1976d2', fontWeight: '600' }}>
+                        <Text style={{ fontWeight: '700' }}>Total:</Text> Rs. {currentPrice.toLocaleString()} (PKR)
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
+            } else {
+              // Other users see only total rent
+              return (
+                <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 8 }}>
+                  Rs. {currentPrice.toLocaleString()} (PKR) / {machinery?.priceUnit || 'day'}
+                </Text>
+              );
+            }
+          })()}
           {machinery?.securityDeposit && (
             <Text style={{ fontSize: 14, color: '#47D6FF', marginBottom: 5, fontWeight: '600' }}>
-              Security Deposit: Rs. {machinery.securityDeposit}
+              Security Deposit: Rs. {machinery.securityDeposit} (PKR)
             </Text>
           )}
           {(machinery?.ownerName || (ownerAllowsLocation && machinery?.location)) && (

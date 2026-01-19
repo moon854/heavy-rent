@@ -34,7 +34,9 @@ const AdForm = ({ navigation, route }) => {
   });
   const [phoneError, setPhoneError] = useState(false);
   const [cnicError, setCnicError] = useState(false);
+  const [showConditionPicker, setShowConditionPicker] = useState(false);
 
+  const vehicleConditions = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor', 'New', 'Used'];
   const user = useSelector((state) => state?.home?.user) || {};
   const settings = useSelector((state) => state?.home?.settings) || {};
 
@@ -302,6 +304,7 @@ const AdForm = ({ navigation, route }) => {
         categoryName: selectedCategory, // Explicit category name
         name: formData.vehicleName,
         price: formData.rentPerDay,
+        originalPrice: formData.rentPerDay, // Store original price set by publisher
         priceUnit: 'per day',
         securityDeposit: formData.securityDeposit || '0',
         ownerId: user.uid || user.id,
@@ -516,12 +519,72 @@ const AdForm = ({ navigation, route }) => {
           onChangeText={(value) => handleInputChange('vehicleName', value)}
           style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
         />
-        <TextInput
-          placeholder="Vehicle Condition"
-          value={formData.vehicleCondition}
-          onChangeText={(value) => handleInputChange('vehicleCondition', value)}
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
-        />
+        
+        {/* Vehicle Condition Dropdown */}
+        <Text style={{ fontSize: 14, fontWeight: '500', marginBottom: 8, color: '#666' }}>
+          Vehicle Condition
+        </Text>
+        <TouchableOpacity 
+          onPress={() => setShowConditionPicker(!showConditionPicker)}
+          style={{ 
+            borderWidth: 1, 
+            borderColor: '#ddd', 
+            borderRadius: 8, 
+            padding: 15, 
+            marginBottom: 15, 
+            backgroundColor: '#f8f9fa',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <Text style={{ color: formData.vehicleCondition ? '#333' : '#999', fontSize: 15 }}>
+            {formData.vehicleCondition || 'Select Vehicle Condition'}
+          </Text>
+          <Ionicons 
+            name={showConditionPicker ? "chevron-up" : "chevron-down"} 
+            size={20} 
+            color="#47D6FF" 
+          />
+        </TouchableOpacity>
+
+        {showConditionPicker && (
+          <View style={{ 
+            borderWidth: 1, 
+            borderColor: '#ddd', 
+            borderRadius: 8, 
+            marginBottom: 15, 
+            backgroundColor: '#fff',
+            maxHeight: 200
+          }}>
+            <ScrollView nestedScrollEnabled={true}>
+              {vehicleConditions.map((condition, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    handleInputChange('vehicleCondition', condition);
+                    setShowConditionPicker(false);
+                  }}
+                  style={{ 
+                    paddingVertical: 12, 
+                    paddingHorizontal: 15, 
+                    borderBottomWidth: index < vehicleConditions.length - 1 ? 1 : 0, 
+                    borderBottomColor: '#f0f0f0',
+                    backgroundColor: formData.vehicleCondition === condition ? '#47D6FF10' : '#fff'
+                  }}
+                >
+                  <Text style={{ 
+                    color: formData.vehicleCondition === condition ? '#47D6FF' : '#333', 
+                    fontWeight: formData.vehicleCondition === condition ? '600' : '400',
+                    fontSize: 15
+                  }}>
+                    {condition}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
         <TextInput
           placeholder="Rent per Day (Rs) *"
           value={formData.rentPerDay}

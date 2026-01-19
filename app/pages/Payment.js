@@ -158,7 +158,7 @@ const Payment = ({ navigation, route }) => {
                     <View style={{ backgroundColor: '#47D6FF10', borderRadius: 8, padding: 15, marginBottom: 15, borderLeftWidth: 4, borderLeftColor: '#47D6FF' }}>
                         <Text style={{ fontSize: 14, color: '#666', marginBottom: 5 }}>Advance Payment Amount:</Text>
                         <Text style={{ fontSize: 28, fontWeight: '700', color: '#47D6FF' }}>
-                            Rs. {paymentData.advancePayment?.toLocaleString()}
+                            Rs. {paymentData.advancePayment?.toLocaleString()} <Text style={{ fontSize: 16, color: '#47D6FF', opacity: 0.8 }}>(PKR)</Text>
                         </Text>
                     </View>
                 )}

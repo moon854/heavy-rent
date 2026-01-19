@@ -99,7 +99,39 @@ const OwnerProfile = ({ navigation, route }) => {
               )}
               <View style={{ flex: 1, justifyContent: 'center' }}>
                 <Text style={{ fontSize: 16, fontWeight: '600' }}>{item.name}</Text>
-                <Text style={{ fontSize: 14, color: '#47D6FF', fontWeight: '600', marginTop: 2 }}>${item.price}/{item.priceUnit}</Text>
+                {(() => {
+                  const isItemOwner = (currentUser?.uid === item?.ownerId || currentUser?.id === item?.ownerId);
+                  const currentPrice = parseFloat(item?.price || 0);
+                  let originalPrice = parseFloat(item?.originalPrice || 0);
+                  let commission = parseFloat(item?.commission || 0);
+                  
+                  // If originalPrice doesn't exist but price exists, calculate breakdown
+                  if (isItemOwner && currentPrice > 0 && originalPrice === 0) {
+                    const defaultCommissionPercent = 0.20; // 20% default
+                    originalPrice = currentPrice / (1 + defaultCommissionPercent);
+                    commission = currentPrice - originalPrice;
+                  }
+                  
+                  const hasCommission = originalPrice > 0 && currentPrice > originalPrice;
+                  
+                  if (isItemOwner && currentPrice > 0 && hasCommission) {
+                    return (
+                      <View>
+                        <Text style={{ fontSize: 14, color: '#47D6FF', fontWeight: '600', marginTop: 2 }}>
+                          Rs. {currentPrice.toLocaleString()} (PKR) / {item.priceUnit}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: '#1976d2', marginTop: 2 }}>
+                          Rent: Rs. {originalPrice.toFixed(0)} + Commission: Rs. {commission.toFixed(0)}
+                        </Text>
+                      </View>
+                    );
+                  }
+                  return (
+                    <Text style={{ fontSize: 14, color: '#47D6FF', fontWeight: '600', marginTop: 2 }}>
+                      Rs. {currentPrice.toLocaleString()} (PKR) / {item.priceUnit}
+                    </Text>
+                  );
+                })()}
                 {ownerUser?.settings?.showLocation !== false && item.location && (
                   <Text style={{ fontSize: 11, color: '#999', marginTop: 2 }}>📍 {item.location}</Text>
                 )}

@@ -7,7 +7,13 @@ const RentalEstimation = ({ navigation, route }) => {
   const machineryData = route?.params?.machineryData || {};
   
   const [rentPerDay, setRentPerDay] = useState(machineryData?.price || '5000');
-  const [numberOfDays, setNumberOfDays] = useState('1');
+  const [numberOfDays, setNumberOfDays] = useState(() => {
+    // Initialize with numberOfDays from rentalData if available
+    if (rentalData?.numberOfDays) {
+      return String(rentalData.numberOfDays);
+    }
+    return '1';
+  });
   const [securityDeposit, setSecurityDeposit] = useState(machineryData?.securityDeposit || '10000');
 
   // Calculate total rent
@@ -36,9 +42,17 @@ const RentalEstimation = ({ navigation, route }) => {
     return totalRent + security;
   }
 
-  // Auto-set number of days from rental duration
+  // Auto-set number of days from rentalData
   useEffect(() => {
-    if (rentalData.rentalDuration) {
+    // Priority 1: Use numberOfDays from rentalData (from date calculation)
+    if (rentalData?.numberOfDays !== undefined && rentalData?.numberOfDays !== null) {
+      const days = parseInt(rentalData.numberOfDays);
+      if (!isNaN(days) && days > 0) {
+        setNumberOfDays(String(days));
+      }
+    }
+    // Priority 2: Fallback to rentalDuration (for backward compatibility)
+    else if (rentalData?.rentalDuration) {
       const duration = rentalData.rentalDuration;
       if (duration === '1 Day') setNumberOfDays('1');
       else if (duration === '3 Days') setNumberOfDays('3');
@@ -98,12 +112,12 @@ const RentalEstimation = ({ navigation, route }) => {
         {/* Rent Per Day Display (Read-Only) */}
         <View style={{ marginBottom: 20 }}>
           <Text style={{ fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 8 }}>
-            Machinery Rent Per Day (Rs)
+            Machinery Rent Per Day (Pakistani Rupees)
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, backgroundColor: '#f5f5f5', paddingHorizontal: 12, paddingVertical: 12 }}>
             <Text style={{ fontSize: 16, fontWeight: '600', color: '#47D6FF', marginRight: 5 }}>Rs.</Text>
             <Text style={{ fontSize: 16, color: '#333', fontWeight: '600' }}>
-              {rentPerDay}
+              {rentPerDay} <Text style={{ fontSize: 12, color: '#999' }}>(PKR)</Text>
             </Text>
           </View>
         </View>
@@ -126,7 +140,7 @@ const RentalEstimation = ({ navigation, route }) => {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 14, color: '#666' }}>Total Rent</Text>
             <Text style={{ fontSize: 18, fontWeight: '700', color: '#47D6FF' }}>
-              Rs. {calculateTotalRent().toLocaleString()}
+              Rs. {calculateTotalRent().toLocaleString()} <Text style={{ fontSize: 12, color: '#47D6FF', opacity: 0.8 }}>(PKR)</Text>
             </Text>
           </View>
           <Text style={{ fontSize: 12, color: '#999', marginTop: 5 }}>
@@ -137,12 +151,12 @@ const RentalEstimation = ({ navigation, route }) => {
         {/* Security Deposit Display (Read-Only) */}
         <View style={{ marginBottom: 15 }}>
           <Text style={{ fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 8 }}>
-            Security Deposit (Rs)
+            Security Deposit (Pakistani Rupees)
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, backgroundColor: '#f5f5f5', paddingHorizontal: 12, paddingVertical: 12 }}>
             <Ionicons name="shield-checkmark-outline" size={20} color="#47D6FF" style={{ marginRight: 8 }} />
             <Text style={{ fontSize: 16, color: '#333', fontWeight: '600' }}>
-              Rs. {parseFloat(securityDeposit || 0).toLocaleString()}
+              Rs. {parseFloat(securityDeposit || 0).toLocaleString()} <Text style={{ fontSize: 12, color: '#999' }}>(PKR)</Text>
             </Text>
           </View>
         </View>
@@ -156,52 +170,52 @@ const RentalEstimation = ({ navigation, route }) => {
 
         {/* Total Rent */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-          <Text style={{ fontSize: 14, color: '#666' }}>Total Rent</Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#333' }}>
-            Rs. {calculateTotalRent().toLocaleString()}
-          </Text>
-        </View>
-
-        {/* Security Deposit */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-          <Text style={{ fontSize: 14, color: '#666' }}>Security Deposit</Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#333' }}>
-            Rs. {parseFloat(securityDeposit || 0).toLocaleString()}
-          </Text>
-        </View>
-
-        <View style={{ height: 1, backgroundColor: '#e0e0e0', marginVertical: 15 }} />
-
-        {/* Advance Payment (50% Rent + Security) */}
-        <View style={{ marginBottom: 15 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-            <Text style={{ fontSize: 14, color: '#ff9800', fontWeight: '600' }}>Advance Payment</Text>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#ff9800' }}>
-              Rs. {calculateAdvancePayment().toLocaleString()}
+            <Text style={{ fontSize: 14, color: '#666' }}>Total Rent</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#333' }}>
+              Rs. {calculateTotalRent().toLocaleString()} <Text style={{ fontSize: 11, color: '#999' }}>(PKR)</Text>
             </Text>
           </View>
-          <Text style={{ fontSize: 12, color: '#999', fontStyle: 'italic' }}>
-            (50% Rent: Rs. {(calculateTotalRent() * 0.5).toLocaleString()} + Security: Rs. {parseFloat(securityDeposit || 0).toLocaleString()})
-          </Text>
-        </View>
 
-        {/* Remaining Payment */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-          <Text style={{ fontSize: 14, color: '#666' }}>Remaining Payment (50%)</Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#333' }}>
-            Rs. {calculateRemainingPayment().toLocaleString()}
-          </Text>
-        </View>
+          {/* Security Deposit */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+            <Text style={{ fontSize: 14, color: '#666' }}>Security Deposit</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#333' }}>
+              Rs. {parseFloat(securityDeposit || 0).toLocaleString()} <Text style={{ fontSize: 11, color: '#999' }}>(PKR)</Text>
+            </Text>
+          </View>
 
-        <View style={{ height: 1, backgroundColor: '#e0e0e0', marginVertical: 15 }} />
+          <View style={{ height: 1, backgroundColor: '#e0e0e0', marginVertical: 15 }} />
 
-        {/* Grand Total */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#47D6FF10', padding: 15, borderRadius: 8, marginTop: 5 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#333' }}>Grand Total</Text>
-          <Text style={{ fontSize: 20, fontWeight: '700', color: '#47D6FF' }}>
-            Rs. {calculateGrandTotal().toLocaleString()}
-          </Text>
-        </View>
+          {/* Advance Payment (50% Rent + Security) */}
+          <View style={{ marginBottom: 15 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ fontSize: 14, color: '#ff9800', fontWeight: '600' }}>Advance Payment</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#ff9800' }}>
+                Rs. {calculateAdvancePayment().toLocaleString()} <Text style={{ fontSize: 11, color: '#ff9800', opacity: 0.8 }}>(PKR)</Text>
+              </Text>
+            </View>
+            <Text style={{ fontSize: 12, color: '#999', fontStyle: 'italic' }}>
+              (50% Rent: Rs. {(calculateTotalRent() * 0.5).toLocaleString()} + Security: Rs. {parseFloat(securityDeposit || 0).toLocaleString()})
+            </Text>
+          </View>
+
+          {/* Remaining Payment */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+            <Text style={{ fontSize: 14, color: '#666' }}>Remaining Payment (50%)</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#333' }}>
+              Rs. {calculateRemainingPayment().toLocaleString()} <Text style={{ fontSize: 11, color: '#999' }}>(PKR)</Text>
+            </Text>
+          </View>
+
+          <View style={{ height: 1, backgroundColor: '#e0e0e0', marginVertical: 15 }} />
+
+          {/* Grand Total */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#47D6FF10', padding: 15, borderRadius: 8, marginTop: 5 }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#333' }}>Grand Total</Text>
+            <Text style={{ fontSize: 20, fontWeight: '700', color: '#47D6FF' }}>
+              Rs. {calculateGrandTotal().toLocaleString()} <Text style={{ fontSize: 14, color: '#47D6FF', opacity: 0.8 }}>(PKR)</Text>
+            </Text>
+          </View>
       </View>
 
       {/* Proceed to Payment Button */}

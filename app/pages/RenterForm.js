@@ -1,10 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import { useSelector } from 'react-redux'
+import { getAllCategories } from '../Helper/firebaseHelper'
 
 const RenterForm = ({ navigation, route }) => {
   const machineryData = route?.params?.machineryData || {};
+  const user = useSelector((state) => state?.home?.user) || {};
 
   // Utility function to parse dates from various formats
   const parseDate = (dateStr) => {
@@ -95,7 +98,8 @@ const RenterForm = ({ navigation, route }) => {
     operatorRequired: 'No',
     emergencyContact: '',
     emergencyName: '',
-    acceptedTerms: false
+    acceptedTerms: false,
+    category: ''
   })
 
   const [showProjectPicker, setShowProjectPicker] = useState(false)
@@ -106,7 +110,46 @@ const RenterForm = ({ navigation, route }) => {
   const [phoneError, setPhoneError] = useState(false)
   const [emergencyPhoneError, setEmergencyPhoneError] = useState(false)
   const [cnicError, setCnicError] = useState(false)
+  const [categories, setCategories] = useState([])
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false)
   const projectTypes = ['Construction', 'Road Work', 'Mining', 'Demolition', 'Landscaping', 'Other']
+
+  // Fetch categories and prefills user data on component mount
+  useEffect(() => {
+    fetchCategories();
+    prefillUserData();
+    
+    // Auto-select category from machineryData if available
+    if (machineryData?.categoryName || machineryData?.category) {
+      setFormData(prev => ({
+        ...prev,
+        category: machineryData.categoryName || machineryData.category
+      }));
+    }
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const categoriesData = await getAllCategories();
+      setCategories(categoriesData || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setCategories([]);
+    }
+  };
+
+  const prefillUserData = () => {
+    if (user && typeof user === 'object') {
+      setFormData(prev => ({
+        ...prev,
+        // Only prefill if field is empty
+        fullName: prev.fullName || (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || ''),
+        phone: prev.phone || user.phone || '',
+        address: prev.address || user.address || '',
+        cnic: prev.cnic || user.cnic || '',
+      }));
+    }
+  };
 
   // Function to format phone number in Pakistani domestic format (0 3XX XXXXXXX)
   const formatPhoneNumber = (text) => {
@@ -281,6 +324,42 @@ const RenterForm = ({ navigation, route }) => {
       <Text style={{ fontSize: 14, fontWeight: "400", textAlign: "center", marginBottom: 25, color: '#666' }}>
         Please fill in the details below
       </Text>
+
+      {/* Section: Category Selection */}
+      <View style={{ width: '100%', marginBottom: 20 }}>
+        <Text style={{ fontSize: 16, fontWeight: '600', color: '#47D6FF', marginBottom: 15 }}>
+          📦 Category
+        </Text>
+        
+        <TouchableOpacity 
+          onPress={() => setShowCategoryPicker(!showCategoryPicker)}
+          style={{ width: "100%", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, paddingHorizontal: 15, marginBottom: 12, backgroundColor: '#f9f9f9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Text style={{ color: formData.category ? '#333' : '#999' }}>
+            {formData.category || 'Select Category'}
+          </Text>
+          <Ionicons name={showCategoryPicker ? "chevron-up" : "chevron-down"} size={20} color="#47D6FF" />
+        </TouchableOpacity>
+
+        {showCategoryPicker && (
+          <View style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, marginBottom: 12, backgroundColor: '#fff', maxHeight: 200 }}>
+            <ScrollView nestedScrollEnabled={true}>
+              {categories.map((category, index) => (
+                <TouchableOpacity
+                  key={category.id || index}
+                  onPress={() => {
+                    setFormData({ ...formData, category: category.name })
+                    setShowCategoryPicker(false)
+                  }}
+                  style={{ paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: index < categories.length - 1 ? 1 : 0, borderBottomColor: '#f0f0f0' }}
+                >
+                  <Text style={{ color: formData.category === category.name ? '#47D6FF' : '#333', fontWeight: formData.category === category.name ? '600' : '400' }}>{category.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </View>
 
       {/* Section: Personal Information */}
       <View style={{ width: '100%', marginBottom: 20 }}>

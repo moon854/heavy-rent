@@ -513,13 +513,13 @@ const RentalHistory = () => {
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
                     <Text style={{ color: colors.textSecondary, fontSize: 13 }}>Total Rent:</Text>
                     <Text style={{ color: colors.textPrimary, fontWeight: '600', fontSize: 13 }}>
-                      Rs. {rental.totalRent?.toLocaleString() || '0'}
+                      Rs. {rental.totalRent?.toLocaleString() || '0'} <Text style={{ fontSize: 11, color: colors.textSecondary }}>(PKR)</Text>
                     </Text>
                   </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
                     <Text style={{ color: colors.textSecondary, fontSize: 13 }}>Security Deposit:</Text>
                     <Text style={{ color: colors.textPrimary, fontWeight: '600', fontSize: 13 }}>
-                      Rs. {rental.securityDeposit?.toLocaleString() || '0'}
+                      Rs. {rental.securityDeposit?.toLocaleString() || '0'} <Text style={{ fontSize: 11, color: colors.textSecondary }}>(PKR)</Text>
                     </Text>
                   </View>
                   <View style={{ 
@@ -532,7 +532,7 @@ const RentalHistory = () => {
                   }}>
                     <Text style={{ color: colors.textPrimary, fontWeight: 'bold', fontSize: 14 }}>Grand Total:</Text>
                     <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 16 }}>
-                      Rs. {rental.grandTotal?.toLocaleString() || '0'}
+                      Rs. {rental.grandTotal?.toLocaleString() || '0'} <Text style={{ fontSize: 13, opacity: 0.8 }}>(PKR)</Text>
             </Text>
           </View>
         </View>

@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Chat from './Chat';
 import RentalHistory from './History';
 import Home from './Home';
@@ -16,6 +17,7 @@ const Tab = createBottomTabNavigator();
 const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
   const [machinery, setMachinery] = useState([]);
   const [loading, setLoading] = useState(true);
+  const user = useSelector((state) => state?.home?.user) || {};
   
   // Debug logging
   console.log('ExcavatorsContent received:', { categoryName, categoryId });
@@ -124,10 +126,42 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
               </View>
               <View style={{ flex: 1, justifyContent: 'center' }}>
                 <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 5 }}>{item.name}</Text>
-                <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#47D6FF', marginBottom: 5 }}>${item.price}/{item.priceUnit}</Text>
+                {(() => {
+                  const isItemOwner = user?.uid === item?.ownerId || user?.id === item?.ownerId;
+                  const currentPrice = parseFloat(item?.price || 0);
+                  let originalPrice = parseFloat(item?.originalPrice || 0);
+                  let commission = parseFloat(item?.commission || 0);
+                  
+                  // If originalPrice doesn't exist but price exists, calculate breakdown
+                  if (isItemOwner && currentPrice > 0 && originalPrice === 0) {
+                    const defaultCommissionPercent = 0.20; // 20% default
+                    originalPrice = currentPrice / (1 + defaultCommissionPercent);
+                    commission = currentPrice - originalPrice;
+                  }
+                  
+                  const hasCommission = originalPrice > 0 && currentPrice > originalPrice;
+                  
+                  if (isItemOwner && currentPrice > 0 && hasCommission) {
+                    return (
+                      <View>
+                        <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#47D6FF', marginBottom: 3 }}>
+                          Rs. {currentPrice.toLocaleString()} (PKR) / {item.priceUnit}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: '#1976d2', marginBottom: 2 }}>
+                          Rent: Rs. {originalPrice.toFixed(0)} + Commission: Rs. {commission.toFixed(0)}
+                        </Text>
+                      </View>
+                    );
+                  }
+                  return (
+                    <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#47D6FF', marginBottom: 5 }}>
+                      Rs. {currentPrice.toLocaleString()} (PKR) / {item.priceUnit}
+                    </Text>
+                  );
+                })()}
                 {item.securityDeposit && (
                   <Text style={{ fontSize: 13, color: '#FF9800', fontWeight: '600', marginBottom: 3 }}>
-                    Security: Rs. {item.securityDeposit}
+                    Security: Rs. {item.securityDeposit} (PKR)
                   </Text>
                 )}
                 {(item.ownerName || item.location) && (

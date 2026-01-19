@@ -192,12 +192,49 @@ const MyAds = ({ navigation }) => {
                       <Text style={{ fontSize: 14, color: '#666', marginBottom: 3 }}>
                         Category: {ad.categoryName || ad.category || 'Unknown'}
                       </Text>
-                      <Text style={{ fontSize: 14, color: '#666', marginBottom: 3 }}>
-                        Price: Rs {ad.rentPerDay || ad.price || '0'} / day
-                      </Text>
+                      {(() => {
+                        const currentPrice = parseFloat(ad?.price || ad?.rentPerDay || 0);
+                        let originalPrice = parseFloat(ad?.originalPrice || 0);
+                        let commission = parseFloat(ad?.commission || 0);
+                        
+                        // If originalPrice doesn't exist but price exists, calculate breakdown
+                        if (currentPrice > 0 && originalPrice === 0) {
+                          const defaultCommissionPercent = 0.20; // 20% default
+                          originalPrice = currentPrice / (1 + defaultCommissionPercent);
+                          commission = currentPrice - originalPrice;
+                        }
+                        
+                        const hasCommission = originalPrice > 0 && currentPrice > originalPrice;
+                        
+                        if (currentPrice > 0 && hasCommission) {
+                          return (
+                            <View>
+                              <Text style={{ fontSize: 14, color: '#666', marginBottom: 3 }}>
+                                Price: Rs. {currentPrice.toLocaleString()} (PKR) / day
+                              </Text>
+                              <View style={{ backgroundColor: '#e3f2fd', borderRadius: 6, padding: 8, marginBottom: 3 }}>
+                                <Text style={{ fontSize: 12, color: '#1976d2', marginBottom: 2 }}>
+                                  <Text style={{ fontWeight: '600' }}>Rent:</Text> Rs. {originalPrice.toFixed(0)} (PKR)
+                                </Text>
+                                <Text style={{ fontSize: 12, color: '#1976d2', marginBottom: 2 }}>
+                                  <Text style={{ fontWeight: '600' }}>Commission:</Text> Rs. {commission.toFixed(0)} (PKR)
+                                </Text>
+                                <Text style={{ fontSize: 12, color: '#1976d2', fontWeight: '600' }}>
+                                  <Text style={{ fontWeight: '700' }}>Total:</Text> Rs. {currentPrice.toLocaleString()} (PKR)
+                                </Text>
+                              </View>
+                            </View>
+                          );
+                        }
+                        return (
+                          <Text style={{ fontSize: 14, color: '#666', marginBottom: 3 }}>
+                            Price: Rs. {currentPrice.toLocaleString()} (PKR) / day
+                          </Text>
+                        );
+                      })()}
                       {ad.securityDeposit && (
                         <Text style={{ fontSize: 13, color: '#FF9800', fontWeight: '600', marginBottom: 3 }}>
-                          Security: Rs. {ad.securityDeposit}
+                          Security: Rs. {ad.securityDeposit} (PKR)
                         </Text>
                       )}
                       {/* Status Indicator */}

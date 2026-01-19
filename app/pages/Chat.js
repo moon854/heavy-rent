@@ -308,24 +308,24 @@ const Chat = ({ navigation, route }) => {
                             </Text>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
                               <Text style={{ fontSize: 12, color: '#856404' }}>Rent/Day:</Text>
-                              <Text style={{ fontSize: 12, fontWeight: '600', color: '#856404' }}>Rs. {msg.requestCard.rentPerDay?.toLocaleString()}</Text>
+                              <Text style={{ fontSize: 12, fontWeight: '600', color: '#856404' }}>Rs. {msg.requestCard.rentPerDay?.toLocaleString()} <Text style={{ fontSize: 10 }}>(PKR)</Text></Text>
                             </View>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
                               <Text style={{ fontSize: 12, color: '#856404' }}>Total Rent:</Text>
-                              <Text style={{ fontSize: 12, fontWeight: '600', color: '#856404' }}>Rs. {msg.requestCard.totalRent?.toLocaleString()}</Text>
+                              <Text style={{ fontSize: 12, fontWeight: '600', color: '#856404' }}>Rs. {msg.requestCard.totalRent?.toLocaleString()} <Text style={{ fontSize: 10 }}>(PKR)</Text></Text>
                             </View>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
                               <Text style={{ fontSize: 12, color: '#856404' }}>Security Deposit:</Text>
-                              <Text style={{ fontSize: 12, fontWeight: '600', color: '#856404' }}>Rs. {msg.requestCard.securityDeposit?.toLocaleString()}</Text>
+                              <Text style={{ fontSize: 12, fontWeight: '600', color: '#856404' }}>Rs. {msg.requestCard.securityDeposit?.toLocaleString()} <Text style={{ fontSize: 10 }}>(PKR)</Text></Text>
                             </View>
                             <View style={{ height: 1, backgroundColor: '#856404', marginVertical: 6 }} />
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
                               <Text style={{ fontSize: 13, fontWeight: '700', color: '#856404' }}>Advance Paid:</Text>
-                              <Text style={{ fontSize: 13, fontWeight: '700', color: '#4CAF50' }}>Rs. {msg.requestCard.advancePayment?.toLocaleString()}</Text>
+                              <Text style={{ fontSize: 13, fontWeight: '700', color: '#4CAF50' }}>Rs. {msg.requestCard.advancePayment?.toLocaleString()} <Text style={{ fontSize: 10 }}>(PKR)</Text></Text>
                             </View>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                               <Text style={{ fontSize: 12, color: '#856404' }}>Remaining:</Text>
-                              <Text style={{ fontSize: 12, fontWeight: '600', color: '#FF9800' }}>Rs. {msg.requestCard.remainingPayment?.toLocaleString()}</Text>
+                              <Text style={{ fontSize: 12, fontWeight: '600', color: '#FF9800' }}>Rs. {msg.requestCard.remainingPayment?.toLocaleString()} <Text style={{ fontSize: 10 }}>(PKR)</Text></Text>
                             </View>
                           </View>
 
