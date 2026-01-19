@@ -26,7 +26,10 @@ const AdForm = ({ navigation, route }) => {
     vehicleCondition: '',
     rentPerDay: '',
     securityDeposit: '',
-    specifications: '',
+    specification1: '',
+    specification2: '',
+    specification3: '',
+    specification4: '',
     rentalPolicy1: '',
     rentalPolicy2: '',
     rentalPolicy3: '',
@@ -94,7 +97,10 @@ const AdForm = ({ navigation, route }) => {
       vehicleCondition: adData.specifications?.condition || '',
       rentPerDay: adData.price || adData.rentPerDay || '',
       securityDeposit: adData.securityDeposit || '',
-      specifications: adData.specifications?.description || adData.specifications?.power || adData.specifications?.capacity || adData.specifications?.torque || '',
+      specification1: adData.specifications?.specification1 || adData.specifications?.list?.[0] || '',
+      specification2: adData.specifications?.specification2 || adData.specifications?.list?.[1] || '',
+      specification3: adData.specifications?.specification3 || adData.specifications?.list?.[2] || '',
+      specification4: adData.specifications?.specification4 || adData.specifications?.list?.[3] || '',
     });
     
     // Set category
@@ -316,8 +322,17 @@ const AdForm = ({ navigation, route }) => {
         location: formData.location || formData.address,
         address: formData.address,
         specifications: {
-          description: formData.specifications || 'Standard',
-          condition: formData.vehicleCondition || 'Good'
+          condition: formData.vehicleCondition || 'Good',
+          specification1: formData.specification1 || '',
+          specification2: formData.specification2 || '',
+          specification3: formData.specification3 || '',
+          specification4: formData.specification4 || '',
+          list: [
+            formData.specification1,
+            formData.specification2,
+            formData.specification3,
+            formData.specification4
+          ].filter(spec => spec && spec.trim() !== '') // Only include non-empty specifications
         },
         rentalPolicies: [
           'Security payment advance must be paid',
@@ -603,12 +618,28 @@ const AdForm = ({ navigation, route }) => {
           Specifications *
         </Text>
         <TextInput
-          placeholder="Enter specifications (e.g., Power: 1676, Capacity: 149, Torque: 64738)"
-          value={formData.specifications}
-          onChangeText={(value) => handleInputChange('specifications', value)}
-          multiline={true}
-          numberOfLines={3}
-          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa', textAlignVertical: 'top' }}
+          placeholder="Specification 1 (e.g., Power: 1676 HP)"
+          value={formData.specification1}
+          onChangeText={(value) => handleInputChange('specification1', value)}
+          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 12, backgroundColor: '#f8f9fa' }}
+        />
+        <TextInput
+          placeholder="Specification 2 (e.g., Capacity: 149 tons)"
+          value={formData.specification2}
+          onChangeText={(value) => handleInputChange('specification2', value)}
+          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 12, backgroundColor: '#f8f9fa' }}
+        />
+        <TextInput
+          placeholder="Specification 3 (e.g., Torque: 64738 Nm)"
+          value={formData.specification3}
+          onChangeText={(value) => handleInputChange('specification3', value)}
+          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 12, backgroundColor: '#f8f9fa' }}
+        />
+        <TextInput
+          placeholder="Specification 4 (e.g., Weight: 45000 kg)"
+          value={formData.specification4}
+          onChangeText={(value) => handleInputChange('specification4', value)}
+          style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#f8f9fa' }}
         />
 
         <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 10, color: '#333' }}>
@@ -731,7 +762,13 @@ const AdForm = ({ navigation, route }) => {
           <Text>Vehicle Name: {formData.vehicleName}</Text>
           <Text>Rent: Rs {formData.rentPerDay}/day</Text>
           <Text>Specifications:</Text>
-          <Text>  • {formData.specifications || 'Not set'}</Text>
+          {formData.specification1 && <Text>  • {formData.specification1}</Text>}
+          {formData.specification2 && <Text>  • {formData.specification2}</Text>}
+          {formData.specification3 && <Text>  • {formData.specification3}</Text>}
+          {formData.specification4 && <Text>  • {formData.specification4}</Text>}
+          {!formData.specification1 && !formData.specification2 && !formData.specification3 && !formData.specification4 && (
+            <Text>  • Not set</Text>
+          )}
           <Text>Rental Policies:</Text>
           <Text>  • Security payment advance must be paid</Text>
           <Text>  • 50% rent advance must be paid, if anyone pays then admin will approve their rental request</Text>

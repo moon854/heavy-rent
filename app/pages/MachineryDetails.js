@@ -228,89 +228,80 @@ const MachineryDetails = ({ navigation, route }) => {
         </View>
       </View>
 
+      {/* Vehicle Condition */}
+      {machinery?.specifications?.condition && (
+        <View style={{ paddingHorizontal: 20, marginTop: 20, marginBottom: 15 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 8 }}>
+            Vehicle Condition
+          </Text>
+          <Text style={{ fontSize: 16, color: '#47D6FF', fontWeight: '500' }}>
+            {machinery.specifications.condition}
+          </Text>
+        </View>
+      )}
+
       {/* Header Row */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Specification</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: machinery?.specifications?.condition ? 10 : 20 }}>
+        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Specifications</Text>
       </View>
 
-      {/* Dynamic Specifications */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginVertical: 10, paddingLeft: 20 }}
-      >
-        {machinery?.specifications?.power && (
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: 'gray',
-              borderRadius: 8,
-              width: 140,
-              height: 60,
-              marginRight: 15,
-              padding: 8,
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Power</Text>
-            <Text style={{ fontSize: 12 }}>{machinery.specifications.power}</Text>
-          </View>
-        )}
-
-        {machinery?.specifications?.capacity && (
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: 'gray',
-              borderRadius: 8,
-              width: 140,
-              height: 60,
-              marginRight: 15,
-              padding: 8,
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Capacity</Text>
-            <Text style={{ fontSize: 12 }}>{machinery.specifications.capacity}</Text>
-          </View>
-        )}
-
-        {machinery?.specifications?.torque && (
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: 'gray',
-              borderRadius: 8,
-              width: 140,
-              height: 60,
-              marginRight: 15,
-              padding: 8,
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Torque</Text>
-            <Text style={{ fontSize: 12 }}>{machinery.specifications.torque}</Text>
-          </View>
-        )}
-
-        {machinery?.specifications?.condition && (
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: 'gray',
-              borderRadius: 8,
-              width: 140,
-              height: 60,
-              marginRight: 15,
-              padding: 8,
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Condition</Text>
-            <Text style={{ fontSize: 12 }}>{machinery.specifications.condition}</Text>
-          </View>
-        )}
-      </ScrollView>
+      {/* Specifications as Separate Bullet Points */}
+      <View style={{ paddingHorizontal: 20, marginVertical: 10 }}>
+        {(() => {
+          // Get specifications from list array or individual fields
+          const specList = machinery?.specifications?.list || [];
+          const specs = specList.length > 0 
+            ? specList.filter(spec => spec && spec.trim() !== '')
+            : [
+                machinery?.specifications?.specification1,
+                machinery?.specifications?.specification2,
+                machinery?.specifications?.specification3,
+                machinery?.specifications?.specification4
+              ].filter(spec => spec && spec.trim() !== '');
+          
+          // Fallback to old format for backward compatibility
+          if (specs.length === 0) {
+            const oldSpecs = [];
+            if (machinery?.specifications?.power) oldSpecs.push(`Power: ${machinery.specifications.power}`);
+            if (machinery?.specifications?.capacity) oldSpecs.push(`Capacity: ${machinery.specifications.capacity}`);
+            if (machinery?.specifications?.torque) oldSpecs.push(`Torque: ${machinery.specifications.torque}`);
+            if (machinery?.specifications?.description) oldSpecs.push(machinery.specifications.description);
+            if (oldSpecs.length > 0) {
+              return (
+                <>
+                  {oldSpecs.map((spec, index) => (
+                    <View key={index} style={{ marginBottom: 10, paddingLeft: 10 }}>
+                      <Text style={{ fontSize: 14, lineHeight: 22, color: '#333' }}>
+                        • {spec}
+                      </Text>
+                    </View>
+                  ))}
+                </>
+              );
+            }
+          }
+          
+          if (specs.length > 0) {
+            return (
+              <>
+                {specs.map((spec, index) => (
+                  <View key={index} style={{ marginBottom: 10, paddingLeft: 10 }}>
+                    <Text style={{ fontSize: 14, lineHeight: 22, color: '#333' }}>
+                      • {spec}
+                    </Text>
+                  </View>
+                ))}
+              </>
+            );
+          }
+          
+          return (
+            <View style={{ paddingLeft: 10 }}>
+              <Text style={{ fontSize: 14, color: '#666', fontStyle: 'italic' }}>No specifications provided</Text>
+            </View>
+          );
+        })()}
+      </View>
 
       {/* Rental Policy */}
       <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 20, marginBottom: 10 }}>Rental Policy</Text>
