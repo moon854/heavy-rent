@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native'
+import React, { useState, useEffect, useRef } from 'react'
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image } from 'react-native'
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import UserProfile from '../../components/UserProfile';
 import { useTheme } from '../../contexts/ThemeContext';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, where, onSnapshot, serverTimestamp, updateDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { notifyAdminNewMessage } from '../Helper/chatNotifications';
 
@@ -16,6 +16,7 @@ const Chat = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true)
   const user = useSelector((state) => state?.home?.user) || {};
   const { colors, isDark } = useTheme();
+  const scrollViewRef = useRef(null);
   
   // Get chat type and machinery details from route params
   const chatType = route?.params?.chatType || 'general';
@@ -38,46 +39,15 @@ const Chat = ({ navigation, route }) => {
     
     console.log('🔍 Starting chat listener for chatId:', chatId);
     
-    // Listen to real-time messages
-    // Note: Chats persist in Firebase - they are never deleted on logout
-    // They will automatically reload when user logs back in
+    // Listen to real-time messages ONLY for this chatId (same strategy for general + machinery)
     const messagesRef = collection(db, 'chatMessages');
-    const q = query(messagesRef);
+    const q = query(messagesRef, where('chatId', '==', chatId));
 
-    const unsubscribe = onSnapshot(q, 
+    const unsubscribe = onSnapshot(q,
       (querySnapshot) => {
-        const chatMessages = [];
+        const chatMessages = querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
         
-        console.log('🔍 Chat Debug - Current User ID:', userId);
-        console.log('🔍 Chat Debug - Current Chat ID:', chatId);
-        console.log('🔍 Chat Debug - Total messages in DB:', querySnapshot.size);
-        
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          
-          // Log all messages for debugging
-          console.log('📨 Message:', {
-            id: doc.id,
-            chatId: data.chatId,
-            recipientId: data.recipientId,
-            type: data.type,
-            senderType: data.senderType,
-            message: data.message?.substring(0, 50)
-          });
-          
-          // STRICT: Show messages ONLY for this specific chatId
-          if (data.chatId === chatId) {
-            console.log('✅ Message matched for this chat!');
-            chatMessages.push({
-              id: doc.id,
-              ...data
-            });
-          }
-        });
-        
-        console.log('💬 Total messages to display:', chatMessages.length);
-        
-        // Sort messages by creation time (client-side)
+        // Sort by createdAt client-side (avoids Firestore composite index requirement)
         chatMessages.sort((a, b) => {
           const aTime = a.createdAt?.toDate?.() || new Date(0);
           const bTime = b.createdAt?.toDate?.() || new Date(0);
@@ -115,6 +85,15 @@ const Chat = ({ navigation, route }) => {
     return () => unsubscribe();
   }, [chatId, userId]);
 
+  // Scroll to bottom when messages load or change
+  useEffect(() => {
+    if (messages.length > 0 && scrollViewRef.current && !loading) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      }, 100);
+    }
+  }, [messages, loading]);
+
   const sendMessage = async () => {
     if (!message.trim()) {
       Alert.alert('Error', 'Please enter a message');
@@ -135,6 +114,7 @@ const Chat = ({ navigation, route }) => {
         senderId: userId,
         senderName: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'User',
         senderType: 'user',
+        recipientId: chatType === 'general' ? 'admin' : (machinery?.ownerId || null), // Add recipientId for admin
         message: message.trim(),
         machineryDetails: machinery ? {
           id: machinery.id,
@@ -184,24 +164,73 @@ const Chat = ({ navigation, route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Entypo name="chevron-left" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <UserProfile 
-          size="small" 
-          showName={false}
-          imageStyle={{ marginLeft: 10 }}
-        />
+        {chatType === 'ad' && machinery ? (
+          (() => {
+            const machineryImage = machinery.imageUrl || machinery.imageUrls?.[0];
+            return machineryImage ? (
+              <View style={{
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                marginLeft: 10,
+                overflow: 'hidden',
+                borderWidth: 2,
+                borderColor: colors.primary
+              }}>
+                <Image
+                  source={{ uri: machineryImage }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    resizeMode: 'cover'
+                  }}
+                />
+              </View>
+            ) : (
+              <View style={{
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                backgroundColor: colors.primary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: 10
+              }}>
+                <Ionicons name="image-outline" size={16} color="#FFFFFF" />
+              </View>
+            );
+          })()
+        ) : (
+          <View style={{
+            width: 30,
+            height: 30,
+            borderRadius: 15,
+            backgroundColor: colors.primary,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 10
+          }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700' }}>A</Text>
+          </View>
+        )}
         <View style={{ marginLeft: 10, flex: 1 }}>
           <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
-            {chatType === 'ad' && machinery ? machinery.name : 'Heavyrent Support'}
+            {chatType === 'ad' && machinery ? machinery.name : 'Admin'}
           </Text>
           <Text style={{ fontSize: 12, color: colors.textSecondary }}>
             {chatType === 'ad' && machinery ? 'Machinery Inquiry' : 'Fast, practical and quality'}
           </Text>
         </View>
-        <Feather name="phone" size={22} color={colors.primary} />
       </View>
 
       {/* Messages */}
-      <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={{ flex: 1, backgroundColor: colors.background }}
+        onContentSizeChange={() => {
+          scrollViewRef.current?.scrollToEnd({ animated: false });
+        }}
+      >
         <View style={{ padding: 15 }}>
           {loading ? (
             <View style={{ 

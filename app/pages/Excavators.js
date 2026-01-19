@@ -10,6 +10,8 @@ import RentalHistory from './History';
 import Home from './Home';
 import Profile from './Profile';
 import { getMachineryByCategory } from '../Helper/firebaseHelper';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 const Tab = createBottomTabNavigator();
 
@@ -17,10 +19,78 @@ const Tab = createBottomTabNavigator();
 const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
   const [machinery, setMachinery] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [availabilityMap, setAvailabilityMap] = useState({});
   const user = useSelector((state) => state?.home?.user) || {};
   
   // Debug logging
   console.log('ExcavatorsContent received:', { categoryName, categoryId });
+
+  // Check availability for all machinery items
+  const checkAvailability = useCallback(async (machineryList) => {
+    if (!machineryList || machineryList.length === 0) return {};
+    
+    try {
+      const availability = {};
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Get all approved rent requests for these machinery items
+      const machineryIds = machineryList.map(m => m.id).filter(Boolean);
+      if (machineryIds.length === 0) return {};
+      
+      const rentRequestsRef = collection(db, 'rentRequests');
+      const availabilityPromises = machineryIds.map(async (machineryId) => {
+        try {
+          const q = query(
+            rentRequestsRef,
+            where('machineryId', '==', machineryId),
+            where('status', '==', 'approved')
+          );
+          const querySnapshot = await getDocs(q);
+          
+          let isCurrentlyRented = false;
+          let latestEndDate = null;
+          
+          querySnapshot.forEach((doc) => {
+            const request = doc.data();
+            if (request.rentalStartDate && request.numberOfDays) {
+              const startDate = request.rentalStartDate?.toDate ? request.rentalStartDate.toDate() : new Date(request.rentalStartDate);
+              const endDate = new Date(startDate);
+              endDate.setDate(endDate.getDate() + (parseInt(request.numberOfDays) - 1));
+              endDate.setHours(23, 59, 59, 999);
+              
+              // Check if rental is currently active
+              if (today >= startDate && today <= endDate) {
+                isCurrentlyRented = true;
+                // Available date is the day AFTER rental ends
+                const nextAvailableDate = new Date(endDate);
+                nextAvailableDate.setDate(nextAvailableDate.getDate() + 1);
+                nextAvailableDate.setHours(0, 0, 0, 0);
+                
+                if (!latestEndDate || nextAvailableDate > latestEndDate) {
+                  latestEndDate = nextAvailableDate;
+                }
+              }
+            }
+          });
+          
+          availability[machineryId] = {
+            isAvailable: !isCurrentlyRented,
+            availableDate: latestEndDate
+          };
+        } catch (error) {
+          console.error(`Error checking availability for ${machineryId}:`, error);
+          availability[machineryId] = { isAvailable: true, availableDate: null };
+        }
+      });
+      
+      await Promise.all(availabilityPromises);
+      return availability;
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      return {};
+    }
+  }, []);
 
   const fetchMachinery = useCallback(async () => {
     try {
@@ -28,10 +98,14 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
       const machineryData = await getMachineryByCategory(categoryId);
       console.log(`Received ${machineryData.length} machinery items`);
       setMachinery(machineryData);
+      
+      // Check availability for all machinery
+      const availability = await checkAvailability(machineryData);
+      setAvailabilityMap(availability);
     } catch (error) {
       console.error('Error fetching machinery:', error);
     }
-  }, [categoryId]);
+  }, [categoryId, checkAvailability]);
 
   useEffect(() => {
     console.log('Initial fetch for category:', categoryId);
@@ -125,7 +199,31 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
                 )}
               </View>
               <View style={{ flex: 1, justifyContent: 'center' }}>
-                <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 5 }}>{item.name}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <Text style={{ fontWeight: 'bold', fontSize: 18, flex: 1 }}>{item.name}</Text>
+                  {availabilityMap[item.id]?.isAvailable === false && (
+                    <View style={{
+                      backgroundColor: '#FFE0B2',
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderRadius: 12,
+                      marginLeft: 8
+                    }}>
+                      <Text style={{ fontSize: 10, color: '#E65100', fontWeight: '600' }}>
+                        Not Available
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                {availabilityMap[item.id]?.isAvailable === false && availabilityMap[item.id]?.availableDate && (
+                  <Text style={{ fontSize: 11, color: '#F57C00', marginBottom: 5, fontStyle: 'italic' }}>
+                    Available after: {availabilityMap[item.id].availableDate.toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </Text>
+                )}
                 {(() => {
                   const isItemOwner = user?.uid === item?.ownerId || user?.id === item?.ownerId;
                   const currentPrice = parseFloat(item?.price || 0);

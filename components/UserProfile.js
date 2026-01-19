@@ -49,6 +49,38 @@ const UserProfile = ({
     ? `${user.firstName} ${user.lastName}`
     : user?.firstName || 'User';
   
+  // Get user initials for profile picture placeholder
+  const getInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName.charAt(0).toUpperCase()}${user.lastName.charAt(0).toUpperCase()}`;
+    } else if (user?.firstName) {
+      return user.firstName.charAt(0).toUpperCase();
+    } else if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
+  const initials = getInitials();
+  
+  // Get font size for initials based on profile size
+  const getInitialFontSize = () => {
+    switch (size) {
+      case 'small':
+        return 12;
+      case 'medium':
+        return 18;
+      case 'large':
+        return 28;
+      case 'xlarge':
+        return 36;
+      default:
+        return 18;
+    }
+  };
+
+  const initialFontSize = getInitialFontSize();
+  
   // Generate cache-busted image URL whenever user?.imageUrl changes
   // This ensures the image refreshes immediately when Redux state updates
   // Using useMemo with Date.now() ensures a fresh timestamp each time imageUrl changes
@@ -63,28 +95,44 @@ const UserProfile = ({
       console.log('UserProfile: Image URL changed, timestamp:', timestamp);
       return { uri: cacheBustedUrl };
     }
-    return require('../assets/images/dp.png.jpg');
+    return null; // No default image - show initials instead
   }, [user?.imageUrl]); // Re-compute whenever imageUrl changes
 
   const ProfileContent = () => (
     <View style={[styles.container, style]}>
-      <Image
-        key={`profile-img-${user?.uid || 'default'}-${user?.imageUrl || 'no-img'}`}
-        source={imageSource}
-        style={[
+      {imageSource ? (
+        <Image
+          key={`profile-img-${user?.uid || 'default'}-${user?.imageUrl || 'no-img'}`}
+          source={imageSource}
+          style={[
+            sizeStyles,
+            styles.profileImage,
+            imageStyle
+          ]}
+          onError={(error) => {
+            console.error('UserProfile: Error loading image:', error);
+            console.error('UserProfile: Failed URL:', user?.imageUrl);
+          }}
+          onLoad={() => {
+            console.log('UserProfile: Image loaded successfully');
+          }}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={[
           sizeStyles,
           styles.profileImage,
+          styles.initialContainer,
           imageStyle
-        ]}
-        onError={(error) => {
-          console.error('UserProfile: Error loading image:', error);
-          console.error('UserProfile: Failed URL:', user?.imageUrl);
-        }}
-        onLoad={() => {
-          console.log('UserProfile: Image loaded successfully');
-        }}
-        resizeMode="cover"
-      />
+        ]}>
+          <Text style={[
+            styles.initialText,
+            { fontSize: initialFontSize }
+          ]}>
+            {initials}
+          </Text>
+        </View>
+      )}
       {showName && (
         <Text style={[
           styles.nameText,
@@ -114,6 +162,16 @@ const styles = StyleSheet.create({
   profileImage: {
     borderWidth: 2,
     borderColor: '#47D6FF',
+  },
+  initialContainer: {
+    backgroundColor: '#47D6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initialText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    textAlign: 'center',
   },
   nameText: {
     marginTop: 5,

@@ -3,6 +3,8 @@ import { Image, ScrollView, Text, TouchableOpacity, View, Modal, Dimensions, Ale
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { deleteData, getDataById } from '../Helper/firebaseHelper';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 const MachineryDetails = ({ navigation, route }) => {
   const { machinery } = route.params || {};
@@ -11,6 +13,8 @@ const MachineryDetails = ({ navigation, route }) => {
   const user = useSelector((state) => state?.home?.user) || {};
   const settings = useSelector((state) => state?.home?.settings) || {};
   const [ownerAllowsLocation, setOwnerAllowsLocation] = useState(true);
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [availableDate, setAvailableDate] = useState(null);
   
   // Debug user data
   console.log('Current user data:', {
@@ -42,7 +46,61 @@ const MachineryDetails = ({ navigation, route }) => {
     machineryOwnerId: machinery?.ownerId,
     isOwner: isOwner
   });
-  
+
+  // Check if machinery is currently rented
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (!machinery?.id) return;
+      
+      try {
+        const rentRequestsRef = collection(db, 'rentRequests');
+        const q = query(
+          rentRequestsRef,
+          where('machineryId', '==', machinery.id),
+          where('status', '==', 'approved')
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let latestEndDate = null;
+        let isCurrentlyRented = false;
+        
+        querySnapshot.forEach((doc) => {
+          const request = doc.data();
+          if (request.rentalStartDate && request.numberOfDays) {
+            const startDate = request.rentalStartDate?.toDate ? request.rentalStartDate.toDate() : new Date(request.rentalStartDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + (parseInt(request.numberOfDays) - 1));
+            endDate.setHours(23, 59, 59, 999);
+            
+            // Check if rental is currently active (today is between start and end date)
+            if (today >= startDate && today <= endDate) {
+              isCurrentlyRented = true;
+              // Available date is the day AFTER rental ends
+              const nextAvailableDate = new Date(endDate);
+              nextAvailableDate.setDate(nextAvailableDate.getDate() + 1);
+              nextAvailableDate.setHours(0, 0, 0, 0);
+              
+              if (!latestEndDate || nextAvailableDate > latestEndDate) {
+                latestEndDate = nextAvailableDate;
+              }
+            }
+          }
+        });
+        
+        setIsAvailable(!isCurrentlyRented);
+        setAvailableDate(latestEndDate);
+      } catch (error) {
+        console.error('Error checking availability:', error);
+        setIsAvailable(true); // Default to available on error
+      }
+    };
+    
+    checkAvailability();
+  }, [machinery?.id]);
+
   // Additional debugging for image display
   console.log('Image display check:', {
     hasImageUrl: !!machinery?.imageUrl,
@@ -149,9 +207,37 @@ const MachineryDetails = ({ navigation, route }) => {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
       <View style={{ padding: 20 }}>
-        <Text style={{ fontWeight: 'bold', fontSize: 24, marginBottom: 15, textAlign: 'center' }}>
-          {machinery?.name || 'Machinery Name'}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 }}>
+          <Text style={{ fontWeight: 'bold', fontSize: 24, flex: 1, textAlign: 'center' }}>
+            {machinery?.name || 'Machinery Name'}
+          </Text>
+        </View>
+
+        {/* Availability Status */}
+        {!isAvailable && availableDate && (
+          <View style={{
+            backgroundColor: '#FFE0B2',
+            borderRadius: 8,
+            padding: 12,
+            marginBottom: 15,
+            borderLeftWidth: 4,
+            borderLeftColor: '#FF9800'
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+              <Ionicons name="close-circle" size={20} color="#F57C00" />
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#E65100', marginLeft: 8 }}>
+                Machinery Not Available
+              </Text>
+            </View>
+            <Text style={{ fontSize: 14, color: '#666', marginLeft: 28 }}>
+              Available after: {availableDate ? availableDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              }) : 'N/A'}
+            </Text>
+          </View>
+        )}
 
         {/* Image Gallery */}
         <View style={{ marginBottom: 20 }}>
@@ -456,7 +542,15 @@ const MachineryDetails = ({ navigation, route }) => {
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={goToRForm} style={{ flex: 1, marginRight: 8 }}>
+              <TouchableOpacity 
+                onPress={goToRForm} 
+                disabled={!isAvailable}
+                style={{ 
+                  flex: 1, 
+                  marginRight: 8,
+                  opacity: isAvailable ? 1 : 0.5
+                }}
+              >
                 <View
                   style={{
                     height: 45,
@@ -467,8 +561,10 @@ const MachineryDetails = ({ navigation, route }) => {
                     flexDirection: 'row'
                   }}
                 >
-                  <Ionicons name="calendar-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-                  <Text style={{ fontSize: 14, color: '#fff', fontWeight: '600' }}>Rent</Text>
+                  <Ionicons name={isAvailable ? "calendar-outline" : "close-circle"} size={18} color="#fff" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 14, color: '#fff', fontWeight: '600' }}>
+                    {isAvailable ? 'Rent' : 'Not Available'}
+                  </Text>
                 </View>
               </TouchableOpacity>
 

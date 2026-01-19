@@ -4,6 +4,8 @@ import { useDispatch } from 'react-redux';
 import { LoginWithFBase, getDataById, resendVerificationEmail, syncEmailVerificationStatus } from '../Helper/firebaseHelper';
 import { auth } from '../../firebase';
 import { signOut, sendEmailVerification } from 'firebase/auth';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
 import { setUser } from '../redux/Slices/HomeDataSlice';
 
 const Login = ({ navigation }) => {
@@ -124,6 +126,7 @@ const Login = ({ navigation }) => {
           
           // Sync Firebase Auth emailVerified status with Firestore
           // If user verified their email in Firebase Auth, automatically update Firestore
+          let finalUserData = userData;
           if (authUser.emailVerified && !userData.isVerified) {
             console.log('Email verified in Firebase Auth, syncing with Firestore...');
             try {
@@ -132,6 +135,7 @@ const Login = ({ navigation }) => {
               const updatedUserData = await getDataById("users", authUser.uid);
               if (updatedUserData) {
                 dispatch(setUser(updatedUserData));
+                finalUserData = updatedUserData; // Use updated data for welcome message check
               } else {
                 dispatch(setUser(userData));
               }
@@ -145,6 +149,39 @@ const Login = ({ navigation }) => {
             dispatch(setUser(userData));
           } else {
             dispatch(setUser(userData));
+          }
+          
+          // Send welcome message if user is verified and welcome message hasn't been sent
+          if ((finalUserData.isVerified === true || finalUserData.emailVerified === true) && !finalUserData.welcomeMessageSent) {
+            try {
+              const chatId = `general_${authUser.uid}`;
+              const userName = finalUserData.firstName ? `${finalUserData.firstName} ${finalUserData.lastName || ''}`.trim() : 'User';
+              const welcomeMessage = {
+                chatId: chatId,
+                senderId: 'admin',
+                senderName: 'Admin',
+                senderType: 'admin',
+                recipientId: authUser.uid,
+                message: `Hello ${userName}! I'm reaching out from the admin team. How can I help you today?`,
+                machineryDetails: null,
+                createdAt: serverTimestamp(),
+                status: 'sent'
+              };
+              
+              await addDoc(collection(db, 'chatMessages'), welcomeMessage);
+              
+              // Mark welcome message as sent
+              const userDocRef = doc(db, 'users', authUser.uid);
+              await updateDoc(userDocRef, {
+                welcomeMessageSent: true,
+                welcomeMessageSentAt: serverTimestamp()
+              });
+              
+              console.log('✅ Welcome message sent to user:', userName);
+            } catch (welcomeError) {
+              console.error('Error sending welcome message:', welcomeError);
+              // Don't block login if welcome message fails
+            }
           }
           
           alert("Login successful!");

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,9 +9,11 @@ import { Ionicons } from '@expo/vector-icons';
 const RentalHistory = () => {
   const { colors, isDark } = useTheme();
   const user = useSelector((state) => state?.home?.user);
-  const [rentals, setRentals] = useState([]);
+  const [rentalsTaken, setRentalsTaken] = useState([]); // user rented machinery
+  const [rentalsGiven, setRentalsGiven] = useState([]); // user rented out machinery
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState('taken'); // 'taken' | 'given'
 
   // Utility function to parse dates from various formats
   const parseDate = (dateStr) => {
@@ -107,32 +109,37 @@ const RentalHistory = () => {
       const userId = user?.uid || user?.id;
       const rentRequestsRef = collection(db, 'rentRequests');
       
-      // Try without orderBy first to avoid index issues
-      const q = query(
-        rentRequestsRef,
-        where('userId', '==', userId)
-      );
+      // Fetch both: Taken (as renter) + Given (as owner) without orderBy to avoid index issues
+      const takenQuery = query(rentRequestsRef, where('userId', '==', userId));
+      const givenQuery = query(rentRequestsRef, where('machineryOwnerId', '==', userId));
 
-      const querySnapshot = await getDocs(q);
-      console.log(`History: Found ${querySnapshot.size} rental(s) for user`);
-      
-      const rentalData = [];
+      const [takenSnap, givenSnap] = await Promise.all([
+        getDocs(takenQuery),
+        getDocs(givenQuery)
+      ]);
 
-      querySnapshot.forEach((doc) => {
-        rentalData.push({
-          id: doc.id,
-          ...doc.data()
+      console.log(`History: Found ${takenSnap.size} taken rental(s) for user`);
+      console.log(`History: Found ${givenSnap.size} given rental(s) for user`);
+
+      const takenData = [];
+      takenSnap.forEach((doc) => {
+        takenData.push({ id: doc.id, ...doc.data() });
+      });
+
+      const givenData = [];
+      givenSnap.forEach((doc) => {
+        givenData.push({ id: doc.id, ...doc.data() });
+      });
+
+      const sortByRequestedAtDesc = (arr) =>
+        arr.sort((a, b) => {
+          const aTime = a.requestedAt?.toDate?.() || new Date(0);
+          const bTime = b.requestedAt?.toDate?.() || new Date(0);
+          return bTime - aTime;
         });
-      });
 
-      // Sort by requestedAt in JavaScript instead
-      rentalData.sort((a, b) => {
-        const aTime = a.requestedAt?.toDate?.() || new Date(0);
-        const bTime = b.requestedAt?.toDate?.() || new Date(0);
-        return bTime - aTime;
-      });
-
-      setRentals(rentalData);
+      setRentalsTaken(sortByRequestedAtDesc(takenData));
+      setRentalsGiven(sortByRequestedAtDesc(givenData));
     } catch (error) {
       console.error('History Error:', error.message);
       
@@ -141,23 +148,23 @@ const RentalHistory = () => {
         try {
           const userId = user?.uid || user?.id;
           const rentRequestsRef = collection(db, 'rentRequests');
-          const q = query(
-            rentRequestsRef,
-            where('userId', '==', userId)
-          );
-          
-          const querySnapshot = await getDocs(q);
-          const rentalData = [];
-          
-          querySnapshot.forEach((doc) => {
-            rentalData.push({
-              id: doc.id,
-              ...doc.data()
-            });
-          });
-          
-          setRentals(rentalData);
-          console.log(`History: Alternative query succeeded - ${rentalData.length} rental(s)`);
+          const takenQuery = query(rentRequestsRef, where('userId', '==', userId));
+          const givenQuery = query(rentRequestsRef, where('machineryOwnerId', '==', userId));
+
+          const [takenSnap, givenSnap] = await Promise.all([
+            getDocs(takenQuery),
+            getDocs(givenQuery)
+          ]);
+
+          const takenData = [];
+          takenSnap.forEach((doc) => takenData.push({ id: doc.id, ...doc.data() }));
+
+          const givenData = [];
+          givenSnap.forEach((doc) => givenData.push({ id: doc.id, ...doc.data() }));
+
+          setRentalsTaken(takenData);
+          setRentalsGiven(givenData);
+          console.log(`History: Alternative query succeeded - taken=${takenData.length}, given=${givenData.length}`);
         } catch (altError) {
           console.error('History: Alternative query failed:', altError.message);
         }
@@ -317,7 +324,9 @@ const RentalHistory = () => {
     );
   }
 
-  if (rentals.length === 0) {
+  const rentalsToShow = activeTab === 'taken' ? rentalsTaken : rentalsGiven;
+
+  if (rentalsTaken.length === 0 && rentalsGiven.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background, padding: 15 }}>
         <ScrollView 
@@ -357,13 +366,71 @@ const RentalHistory = () => {
   
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, padding: 15 }}>
+      {/* Tabs */}
+      <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+        <TouchableOpacity
+          onPress={() => setActiveTab('taken')}
+          style={{
+            flex: 1,
+            paddingVertical: 10,
+            borderRadius: 10,
+            backgroundColor: activeTab === 'taken' ? colors.primary : (isDark ? '#2a2a2a' : '#f2f2f2'),
+            alignItems: 'center',
+            marginRight: 6,
+            borderWidth: 1,
+            borderColor: colors.border
+          }}
+        >
+          <Text style={{ color: activeTab === 'taken' ? colors.textInverse : colors.textPrimary, fontWeight: '700' }}>
+            Taken
+          </Text>
+          <Text style={{ color: activeTab === 'taken' ? colors.textInverse : colors.textSecondary, fontSize: 12 }}>
+            {rentalsTaken.length} item(s)
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setActiveTab('given')}
+          style={{
+            flex: 1,
+            paddingVertical: 10,
+            borderRadius: 10,
+            backgroundColor: activeTab === 'given' ? colors.primary : (isDark ? '#2a2a2a' : '#f2f2f2'),
+            alignItems: 'center',
+            marginLeft: 6,
+            borderWidth: 1,
+            borderColor: colors.border
+          }}
+        >
+          <Text style={{ color: activeTab === 'given' ? colors.textInverse : colors.textPrimary, fontWeight: '700' }}>
+            Given
+          </Text>
+          <Text style={{ color: activeTab === 'given' ? colors.textInverse : colors.textSecondary, fontSize: 12 }}>
+            {rentalsGiven.length} item(s)
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView 
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
         }
       >
-        {rentals.map((rental) => {
+        {rentalsToShow.length === 0 ? (
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 40,
+            paddingVertical: 40
+          }}>
+            <Ionicons name="file-tray-outline" size={70} color={colors.textSecondary} />
+            <Text style={{ fontSize: 16, color: colors.textSecondary, marginTop: 15, textAlign: 'center' }}>
+              {activeTab === 'taken' ? 'No taken rentals yet' : 'No given rentals yet'}
+            </Text>
+          </View>
+        ) : rentalsToShow.map((rental) => {
           const statusBadge = getStatusBadge(rental);
           
           return (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { updateData, uploadImageToCloudinary, getDataById } from '../Helper/firebaseHelper';
@@ -97,6 +97,7 @@ const ProfileEdit = () => {
     }
   };
 
+  // Refresh user data when component mounts or user changes
   useEffect(() => {
     if (user) {
       setFirstName(user.firstName || '');
@@ -107,6 +108,41 @@ const ProfileEdit = () => {
       setImageUrl(user.imageUrl || '');
     }
   }, [user]);
+
+  // Refresh user data from Firebase when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const refreshUserData = async () => {
+        try {
+          if (user?.uid) {
+            console.log('ProfileEdit screen focused - Fetching fresh user data...');
+            const freshUserData = await getDataById('users', user.uid);
+            if (freshUserData) {
+              console.log('Fresh user data fetched in ProfileEdit:', freshUserData);
+              console.log('Image URL in fresh data:', freshUserData.imageUrl);
+              
+              // Update Redux with fresh data
+              dispatch(setUser(freshUserData));
+              
+              // Update local state with fresh data (only if not currently editing)
+              if (!loading) {
+                setFirstName(freshUserData.firstName || '');
+                setLastName(freshUserData.lastName || '');
+                setEmail(freshUserData.email || '');
+                setPhone(freshUserData.phone || '');
+                setCnic(freshUserData.cnic || '');
+                setImageUrl(freshUserData.imageUrl || '');
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error refreshing user data in ProfileEdit:', error);
+        }
+      };
+      
+      refreshUserData();
+    }, [user?.uid, dispatch, loading])
+  );
 
   const handleImagePicker = async () => {
     try {
@@ -127,6 +163,26 @@ const ProfileEdit = () => {
         
         if (uploadedImageUrl && uploadedImageUrl.startsWith('http')) {
           setImageUrl(uploadedImageUrl);
+          
+          // IMPORTANT: Persist imageUrl immediately so it doesn't "disappear" when user goes back
+          // (previously it only persisted after pressing "Save Changes")
+          if (user?.uid) {
+            try {
+              console.log('Persisting profile imageUrl to Firestore immediately...');
+              await updateData('users', user.uid, {
+                imageUrl: uploadedImageUrl,
+                updatedAt: new Date().toISOString(),
+              });
+              
+              // Update Redux immediately as well
+              const nextUser = { ...(user || {}), imageUrl: uploadedImageUrl };
+              dispatch(setUser(nextUser));
+              console.log('Profile imageUrl saved + Redux updated:', uploadedImageUrl);
+            } catch (persistErr) {
+              console.error('Failed to persist imageUrl after upload:', persistErr);
+            }
+          }
+
           Alert.alert('Success', 'Image uploaded successfully!');
         } else {
           Alert.alert('Error', 'Failed to upload image. Please try again.');
@@ -171,12 +227,13 @@ const ProfileEdit = () => {
       
       // Fetch fresh user data from Firestore to ensure we have the latest
       const freshUserData = await getDataById('users', user.uid);
-      console.log('Fetched fresh user data:', freshUserData);
+      console.log('Fetched fresh user data after save:', freshUserData);
+      console.log('Image URL in fresh data:', freshUserData?.imageUrl);
       
       if (freshUserData) {
         // Update Redux store with fresh data from Firestore
         dispatch(setUser(freshUserData));
-        console.log('Redux store updated with fresh user data');
+        console.log('Redux store updated with fresh user data including imageUrl:', freshUserData.imageUrl);
       } else {
         // Fallback: Update Redux store with local data
         const updatedUser = { ...user, ...updatedUserData };
@@ -184,15 +241,18 @@ const ProfileEdit = () => {
         console.log('Redux store updated with local data (fallback)');
       }
       
-      Alert.alert('Success', 'Profile updated successfully!', [
-        { 
-          text: 'OK', 
-          onPress: () => {
-            // Force navigation back immediately - useFocusEffect will handle refresh
-            navigation.goBack();
+      // Small delay to ensure Redux state is updated before navigation
+      setTimeout(() => {
+        Alert.alert('Success', 'Profile updated successfully!', [
+          { 
+            text: 'OK', 
+            onPress: () => {
+              // Navigation back - Profile screen will refresh via useFocusEffect
+              navigation.goBack();
+            }
           }
-        }
-      ]);
+        ]);
+      }, 100);
       
     } catch (error) {
       console.error('Error updating profile:', error);

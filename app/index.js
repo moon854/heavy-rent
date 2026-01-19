@@ -9,6 +9,7 @@ import ChatList from './pages/ChatList';
 import Excavators from './pages/Excavators';
 import MachineryDetails from './pages/MachineryDetails';
 import MyAds from './pages/MyAds';
+import MyIncome from './pages/MyIncome';
 import OwnerProfile from './pages/OwnerProfile';
 import NotificationSettings from './pages/NotificationSettings';
 import NotificationTest from './pages/NotificationTest';
@@ -87,6 +88,7 @@ function RenderStack() {
         <Stack.Screen name="Success" component={Success} />
         <Stack.Screen name="AdForm" component={AdForm} />
         <Stack.Screen name="MyAds" component={MyAds} />
+        <Stack.Screen name="MyIncome" component={MyIncome} />
         <Stack.Screen name="Settings" component={Settings} />
         <Stack.Screen name="Notifications" component={Notifications} />
         <Stack.Screen name="PrivacySettings" component={PrivacySettings} />

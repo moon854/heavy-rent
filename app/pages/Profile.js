@@ -144,6 +144,20 @@ const Profile = () => {
           <Text style={{ marginLeft: 15, fontSize: 16, color: colors.textPrimary }}>My Ads</Text>
         </TouchableOpacity>
 
+        {/* My Income */}
+        <TouchableOpacity 
+          onPress={() => navigation.getParent()?.navigate('MyIncome')}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 15,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border
+          }}>
+          <Ionicons name="wallet-outline" size={22} color={colors.primary} />
+          <Text style={{ marginLeft: 15, fontSize: 16, color: colors.textPrimary }}>My Income</Text>
+        </TouchableOpacity>
+
         {/* Settings */}
         <TouchableOpacity 
           onPress={() => navigation.getParent()?.navigate('Settings')}
