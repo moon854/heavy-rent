@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getAllCategories, addData, updateData } from '../Helper/firebaseHelper';
 import { uploadImageToCloudinary } from '../Helper/firebaseHelper';
 import { notifyAdminNewAd } from '../Helper/adminNotifications';
@@ -429,11 +429,26 @@ const AdForm = ({ navigation, route }) => {
                 minWidth: 120,
               }}
             >
-              <Ionicons
-                name="build"
-                size={24}
-                color={selectedCategory === category.name ? '#fff' : '#47D6FF'}
-              />
+              {(() => {
+                // Render icon from Firestore or use fallback
+                const iconColor = selectedCategory === category.name ? '#fff' : '#47D6FF';
+                if (category.iconLibrary && category.iconName) {
+                  switch (category.iconLibrary) {
+                    case 'Ionicons':
+                      return <Ionicons name={category.iconName} size={24} color={iconColor} />;
+                    case 'MaterialIcons':
+                      return <MaterialIcons name={category.iconName} size={24} color={iconColor} />;
+                    case 'MaterialCommunityIcons':
+                      return <MaterialCommunityIcons name={category.iconName} size={24} color={iconColor} />;
+                    case 'FontAwesome':
+                      return <FontAwesome name={category.iconName} size={24} color={iconColor} />;
+                    default:
+                      return <Ionicons name="build" size={24} color={iconColor} />;
+                  }
+                }
+                // Fallback icon
+                return <Ionicons name="build" size={24} color={iconColor} />;
+              })()}
               <Text
                 style={{
                   fontSize: 14,

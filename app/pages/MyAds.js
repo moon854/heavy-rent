@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, ScrollView, Text, TouchableOpacity, View, Alert } from 'react-native';
+import { Image, ScrollView, Text, TouchableOpacity, View, Alert, RefreshControl } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import notificationService from '../services/NotificationService';
 const MyAds = ({ navigation }) => {
   const [myAds, setMyAds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const user = useSelector((state) => state.home.user);
 
   const fetchMyAds = useCallback(async () => {
@@ -105,8 +106,19 @@ const MyAds = ({ navigation }) => {
     });
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchMyAds();
+    setRefreshing(false);
+  };
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <ScrollView 
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#47D6FF" />
+      }
+    >
       {/* Header */}
       <View style={{ backgroundColor: '#47D6FF', justifyContent: 'center', alignItems: 'center', width: '100%', height: 80, flexDirection: 'row' }}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 20 }}>

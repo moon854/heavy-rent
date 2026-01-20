@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { getAllData, getDataById } from '../Helper/firebaseHelper';
@@ -9,6 +9,7 @@ const OwnerProfile = ({ navigation, route }) => {
   const [ads, setAds] = useState([]);
   const [ownerUser, setOwnerUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const viewerSettings = useSelector((state) => state?.home?.settings) || {};
 
   useEffect(() => {
@@ -49,7 +50,12 @@ const OwnerProfile = ({ navigation, route }) => {
         <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>Owner Profile</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView 
+        contentContainerStyle={{ padding: 20 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#47D6FF" />
+        }
+      >
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
           {ownerUser?.imageUrl ? (
             <Image

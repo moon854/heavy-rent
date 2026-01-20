@@ -1,4 +1,4 @@
-import { Image, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { Image, Text, TouchableOpacity, View, ScrollView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native';
@@ -19,6 +19,7 @@ const Tab = createBottomTabNavigator();
 const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
   const [machinery, setMachinery] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [availabilityMap, setAvailabilityMap] = useState({});
   const user = useSelector((state) => state?.home?.user) || {};
   
@@ -131,7 +132,13 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
 
   const goToMachineryDetails = (machineryItem) => {
     navigation.getParent()?.navigate("MachineryDetails", { machinery: machineryItem });
-  }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchMachinery();
+    setRefreshing(false);
+  };
 
   return (
     <>
@@ -144,7 +151,12 @@ const ExcavatorsContent = ({ navigation, categoryName, categoryId }) => {
       </View>
 
       {/* Scrollable list */}
-      <ScrollView style={{ flex: 1 }}>
+      <ScrollView 
+        style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#47D6FF" />
+        }
+      >
         {loading ? (
           <View style={{ alignItems: 'center', marginTop: 50 }}>
             <Text>Loading machinery...</Text>
