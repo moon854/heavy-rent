@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const RentalEstimation = ({ navigation, route }) => {
@@ -85,15 +85,15 @@ const RentalEstimation = ({ navigation, route }) => {
       {/* Logo */}
       <View style={{ alignItems: 'center', marginVertical: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 50, height: 50, alignItems: 'center', justifyContent: 'center', marginRight: 12, position: 'relative' }}>
-            <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 3, borderColor: '#47D6FF', position: 'absolute' }} />
-            <View style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: '#47D6FF', position: 'absolute' }} />
-            <View style={{ width: 16, height: 16, backgroundColor: '#47D6FF', borderRadius: 8 }} />
-          </View>
-          <View>
-            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333', letterSpacing: 1 }}>RENT</Text>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: '#666', letterSpacing: 0.5 }}>TO</Text>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#333', letterSpacing: 1 }}>BUILD</Text>
+          <Image 
+            source={require('../../assets/images/home.logo.png')} 
+            style={{ width: 60, height: 60, marginRight: 12 }}
+            resizeMode="contain"
+          />
+          <View style={{ alignItems: 'flex-start' }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#333', letterSpacing: 1, marginBottom: 2 }}>RENT</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#666', letterSpacing: 0.5, marginBottom: 2, opacity: 0.9 }}>TO</Text>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#333', letterSpacing: 1 }}>BUILD</Text>
           </View>
         </View>
       </View>

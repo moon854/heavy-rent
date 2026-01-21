@@ -1,5 +1,5 @@
 import { Ionicons, MaterialIcons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
-import { ScrollView, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View, RefreshControl, Image } from 'react-native';
 import { useState, useEffect } from 'react';
 import { getAllCategories } from '../Helper/firebaseHelper';
 import UserProfile from '../../components/UserProfile';
@@ -18,7 +18,7 @@ const Home = ({ navigation }) => {
     try {
       const categoriesData = await getAllCategories();
       console.log('📦 Fetched categories:', categoriesData);
-      
+
       // Debug: Log icon information for each category
       categoriesData?.forEach(cat => {
         if (cat.iconLibrary && cat.iconName) {
@@ -27,7 +27,7 @@ const Home = ({ navigation }) => {
           console.warn(`⚠️ Category "${cat.name}": No icon set`);
         }
       });
-      
+
       setCategories(categoriesData || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -79,7 +79,7 @@ const Home = ({ navigation }) => {
   // Function to get fallback icon for existing categories without icons
   const getFallbackIcon = (categoryName) => {
     const name = categoryName?.toLowerCase() || '';
-    
+
     // Fallback icons for existing categories
     if (name.includes('excavator')) {
       return { library: 'MaterialCommunityIcons', name: 'excavator' };
@@ -94,7 +94,7 @@ const Home = ({ navigation }) => {
     } else if (name.includes('surface')) {
       return { library: 'Ionicons', name: 'layers' };
     }
-    
+
     // Default fallback
     return { library: 'MaterialIcons', name: 'category' };
   };
@@ -102,7 +102,7 @@ const Home = ({ navigation }) => {
   // Navigate to category
   const goToCategory = (category) => {
     if (!category) return;
-    
+
     navigation.getParent()?.navigate("Excavators", {
       categoryId: category.id || category.name?.toLowerCase().replace(/\s+/g, '-'),
       categoryName: category.name || "Category"
@@ -182,8 +182,8 @@ const Home = ({ navigation }) => {
 
   // Legacy functions for backward compatibility (keeping them for now but they use the dynamic approach)
   const goToSubCat = () => {
-    const excavatorCategory = categories?.find(cat => 
-      cat.name === 'Excavators' || 
+    const excavatorCategory = categories?.find(cat =>
+      cat.name === 'Excavators' ||
       cat.name === 'Excavator' ||
       cat.id === 'excavators'
     );
@@ -191,8 +191,8 @@ const Home = ({ navigation }) => {
   };
 
   const goToBuildingEquipment = () => {
-    const buildingCategory = categories?.find(cat => 
-      cat.name === 'Building Equipment' || 
+    const buildingCategory = categories?.find(cat =>
+      cat.name === 'Building Equipment' ||
       cat.name === 'Building' ||
       cat.id === 'building-equipment'
     );
@@ -200,8 +200,8 @@ const Home = ({ navigation }) => {
   };
 
   const goToSurfaceFinishing = () => {
-    const surfaceCategory = categories?.find(cat => 
-      cat.name === 'Surface Finishing' || 
+    const surfaceCategory = categories?.find(cat =>
+      cat.name === 'Surface Finishing' ||
       cat.name === 'Surface' ||
       cat.id === 'surface-finishing'
     );
@@ -209,8 +209,8 @@ const Home = ({ navigation }) => {
   };
 
   const goToCranes = () => {
-    const craneCategory = categories?.find(cat => 
-      cat.name === 'Cranes' || 
+    const craneCategory = categories?.find(cat =>
+      cat.name === 'Cranes' ||
       cat.name === 'Crane' ||
       cat.id === 'cranes'
     );
@@ -218,8 +218,8 @@ const Home = ({ navigation }) => {
   };
 
   const goToConcreteEquipment = () => {
-    const concreteCategory = categories?.find(cat => 
-      cat.name === 'Concrete Equipment' || 
+    const concreteCategory = categories?.find(cat =>
+      cat.name === 'Concrete Equipment' ||
       cat.name === 'Concrete' ||
       cat.id === 'concrete-equipment'
     );
@@ -227,8 +227,8 @@ const Home = ({ navigation }) => {
   };
 
   const goToRoadConstruction = () => {
-    const roadCategory = categories?.find(cat => 
-      cat.name === 'Road Construction' || 
+    const roadCategory = categories?.find(cat =>
+      cat.name === 'Road Construction' ||
       cat.name === 'Road' ||
       cat.id === 'road-construction'
     );
@@ -236,29 +236,31 @@ const Home = ({ navigation }) => {
   };
 
   return (
-    <ScrollView 
-      style={{ flex: 1, backgroundColor: colors.background }} 
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={{ alignItems: 'center', paddingBottom: 100 }}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
       }
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '90%', marginTop: 30 }}>
-        <View style={{ flex: 1 }}>
-          <Text style={{ 
-            fontSize: 32, 
-            fontWeight: '800', 
-            color: colors.primary, 
-            textAlign: 'left', 
-            letterSpacing: 2,
-            textShadowColor: colors.primary + '30',
-            textShadowOffset: { width: 0, height: 2 },
-            textShadowRadius: 4
-          }}>Rent-To-Build</Text>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+          {/* Logo Image */}
+          <Image 
+            source={require('../../assets/images/home.logo.png')} 
+            style={{ width: 60, height: 60, marginRight: 12 }}
+            resizeMode="contain"
+          />
+          {/* App Name - Same style as RenterForm */}
+          <View style={{ alignItems: 'flex-start', flex: 1 }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#333', letterSpacing: 1, marginBottom: 2 }}>RENT</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#666', letterSpacing: 0.5, marginBottom: 2, opacity: 0.9 }}>TO</Text>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#333', letterSpacing: 1 }}>BUILD</Text>
+          </View>
         </View>
-        <UserProfile 
-          size="medium" 
-          showName={false} 
+        <UserProfile
+          size="medium"
+          showName={false}
           onPress={goToProfile}
           style={{ marginRight: 0 }}
         />

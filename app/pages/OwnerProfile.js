@@ -11,34 +11,54 @@ const OwnerProfile = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const viewerSettings = useSelector((state) => state?.home?.settings) || {};
+  const currentUser = useSelector((state) => state?.home?.user) || {};
 
   useEffect(() => {
-    const fetchOwnerAds = async () => {
+    const fetchOwnerData = async () => {
       try {
-        const allMachinery = await getAllData('machinery');
-        const ownerAds = (allMachinery || []).filter(item => item.ownerId === ownerId && item.status === 'approved');
+        setLoading(true);
+
+        const [allMachinery, userDoc] = await Promise.all([
+          getAllData('machinery'),
+          ownerId ? getDataById('users', ownerId) : Promise.resolve(null),
+        ]);
+
+        const ownerAds = (allMachinery || []).filter(
+          (item) => item.ownerId === ownerId && item.status === 'approved'
+        );
         setAds(ownerAds);
+        setOwnerUser(userDoc);
       } catch (e) {
         setAds([]);
       } finally {
         setLoading(false);
       }
     };
-    const fetchOwnerUser = async () => {
-      try {
-        if (ownerId) {
-          const userDoc = await getDataById('users', ownerId);
-          setOwnerUser(userDoc);
-        }
-      } catch {}
-    };
 
-    fetchOwnerAds();
-    fetchOwnerUser();
+    fetchOwnerData();
   }, [ownerId]);
 
   const goToDetails = (machinery) => {
     navigation.navigate('MachineryDetails', { machinery });
+  };
+
+  const onRefresh = async () => {
+    try {
+      setRefreshing(true);
+
+      const [allMachinery, userDoc] = await Promise.all([
+        getAllData('machinery'),
+        ownerId ? getDataById('users', ownerId) : Promise.resolve(null),
+      ]);
+
+      const ownerAds = (allMachinery || []).filter(
+        (item) => item.ownerId === ownerId && item.status === 'approved'
+      );
+      setAds(ownerAds);
+      setOwnerUser(userDoc);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   return (

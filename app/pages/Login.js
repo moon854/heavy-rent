@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { LoginWithFBase, getDataById, resendVerificationEmail, syncEmailVerificationStatus } from '../Helper/firebaseHelper';
+import { LoginWithFBase, getDataById, resendVerificationEmail, syncEmailVerificationStatus, forgotPassword } from '../Helper/firebaseHelper';
 import { auth } from '../../firebase';
 import { signOut, sendEmailVerification } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
@@ -16,6 +16,7 @@ const Login = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showResendOption, setShowResendOption] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   // Find user by phone number and get their email
   const getUserEmailByPhone = async (phoneNumber) => {
@@ -228,6 +229,50 @@ const Login = ({ navigation }) => {
         setIsResending(false);
       }
     }
+
+    const handleForgotPassword = async () => {
+      // Check if user has entered email/phone
+      if (!emailOrPhone) {
+        alert("Please enter your email or phone number to reset password");
+        return;
+      }
+
+      setIsResettingPassword(true);
+      try {
+        // Check if input is email or phone number
+        const isEmail = emailOrPhone.includes('@');
+        let userEmail = emailOrPhone;
+        
+        // If it's a phone number, find user's email
+        if (!isEmail) {
+          const foundEmail = await getUserEmailByPhone(emailOrPhone);
+          if (!foundEmail) {
+            alert("No account found with this phone number. Please enter your email address to reset password.");
+            setIsResettingPassword(false);
+            return;
+          }
+          userEmail = foundEmail;
+        }
+
+        // Send password reset email
+        await forgotPassword(userEmail);
+        alert(`Password reset email has been sent to ${userEmail}. Please check your inbox (including spam folder) to reset your password.`);
+      } catch (error) {
+        console.error("Forgot password error:", error);
+        const errorMessage = error?.message || "Failed to send password reset email";
+        
+        // Handle specific Firebase errors
+        if (errorMessage.includes('user-not-found')) {
+          alert("No account found with this email address. Please check your email or create a new account.");
+        } else if (errorMessage.includes('invalid-email')) {
+          alert("Invalid email address. Please enter a valid email.");
+        } else {
+          alert(`Error: ${errorMessage}`);
+        }
+      } finally {
+        setIsResettingPassword(false);
+      }
+    }
   
 
 
@@ -250,7 +295,18 @@ const Login = ({ navigation }) => {
         style={{ borderColor: "#47D6FF", borderWidth: 1, width: "80%", height: 50, alignSelf: 'center', borderRadius: 10, marginTop: 40, backgroundColor: "white", paddingLeft: 10 }} 
         placeholder="Password" 
       />
-      <Text style={{ color: "#47D6FF", paddingLeft: 40, marginTop: 20 }}> Forgot Your Password?</Text>
+      <TouchableOpacity 
+        onPress={handleForgotPassword}
+        disabled={isResettingPassword}
+        style={{ paddingLeft: 40, marginTop: 20 }}
+      >
+        <Text style={{ 
+          color: isResettingPassword ? "#ccc" : "#47D6FF",
+          textDecorationLine: 'underline'
+        }}> 
+          {isResettingPassword ? "Sending reset email..." : "Forgot Your Password?"}
+        </Text>
+      </TouchableOpacity>
       
       {showResendOption && (
         <TouchableOpacity 

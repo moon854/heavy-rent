@@ -168,6 +168,15 @@ const MyIncome = ({ navigation }) => {
     }, [fetchIncomeData])
   );
 
+  const onRefresh = async () => {
+    try {
+      setRefreshing(true);
+      await fetchIncomeData();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const formatDate = (date) => {
     if (!date) return 'N/A';
     try {
@@ -366,11 +375,11 @@ const MyIncome = ({ navigation }) => {
                       marginVertical: 8
                     }} />
                     
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#2E7D32' }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 8 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#2E7D32', flexShrink: 1, paddingRight: 10 }}>
                         Your Net Income (Rent Only):
                       </Text>
-                      <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#4CAF50' }}>
+                      <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#4CAF50', flexShrink: 0 }}>
                         Rs. {record.publisherIncome.toLocaleString('en-US', { maximumFractionDigits: 0 })} (PKR)
                       </Text>
                     </View>
